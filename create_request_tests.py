@@ -67,7 +67,9 @@ class Test(unittest.TestCase):
                                             auth_key='AUTH_KEY')
 
         # exercise
-        request = factory.createRequest(MESSAGE_TYPE, {})
+        request = factory.createRequest(
+            {'type': MESSAGE_TYPE},
+            ['user', 'clientVersion', 'type', 'id', 'auth'])
 
         # verify
         expected_params = {'data':'{'
@@ -96,10 +98,16 @@ class Test(unittest.TestCase):
         gameEvent['type']="action"
         gameEvent['id']=1
         gameEvent['action']="getMissions"
-        data = {'events':[gameEvent]}
+        data = {'type': MESSAGE_TYPE, 'events':[gameEvent]}
 
         # exercise
-        request = factory.createRequest(MESSAGE_TYPE, data)
+        request = factory.createRequest(data, [
+                                               'user',
+                                               'type',
+                                               'id',
+                                               'sig',
+                                               'events'
+                                               ])
 
         # verify
         expected_params = {'data':'{'
@@ -136,9 +144,7 @@ class Test(unittest.TestCase):
                                             auth_key='AUTH_KEY',
                                             session_key=SESSION_KEY)
 
-        data = {"user":USER_ID,
-                "type":MESSAGE_TYPE,
-                "id":BASE_REQUEST_ID,
+        data = {"type":MESSAGE_TYPE,
                 "clientTime":CLIENT_TIME,
                 "info":{"uid":int(USER_ID),
                         "bdate":USER_BDATE,
@@ -154,7 +160,7 @@ class Test(unittest.TestCase):
                 "lang":"en"}
 
         # exercise
-        request = factory.createRequest(MESSAGE_TYPE, data,
+        request = factory.createRequest(data,
                     [
                     'user',
                     'type',

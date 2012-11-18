@@ -72,40 +72,34 @@ class Factory():
         self.BASE_REQUEST_ID = base_request_id # "magick" initial value
         self.__request_id = self.BASE_REQUEST_ID
 
-    def createRequest(self, message_type, data, data_keys_order=None):
+    def createRequest(self, data, data_keys_order=None):
         request_data = {}
-        request_data['data'] = self.__createDataValue(message_type, data, data_keys_order)
+        request_data['data'] = self.__createDataValue(data, data_keys_order)
         request_data['crc'] = calcCRC(request_data['data'])
         return Request(request_data)
 
-    def __createDataValue(self, message_type, data, data_keys_order):
+    def __createDataValue(self, data, data_keys_order):
+        datacopy= data.copy()
+        datacopy['user'] = self.__session.getUserId()
+        datacopy['id'] = self.__request_id
+        datacopy['sig'] = ''
+        datacopy['auth'] = ''
+        datacopy['clientVersion'] = self.__session.CLIENT_VERSION
         data_value = collections.OrderedDict()
-        if data_keys_order is None:
-            data_keys_order = self.__getDataKeyOrder(message_type)
         for key in data_keys_order:
-            data_value[key] = ""
-
-        data_value['user'] = self.__session.getUserId()
-        if message_type == 'TIME':
-            data_value['clientVersion'] = self.__session.CLIENT_VERSION
+            data_value[key] = datacopy[key]
+        message_type = datacopy['type']
         if message_type == 'START':
-            data_value['serverTime'] = data['serverTime']
-            data_value['ad'] = data['ad']
             info_keys = ["uid", "bdate", "country", "first_name",
                          "sex", "city", "last_name"]
             data_value['info'] = collections.OrderedDict()
             for info_key in info_keys:
-                data_value['info'][info_key] = data['info'][info_key]
-            data_value['clientTime'] = data['clientTime']
-            data_value['lang'] = data['lang']
-        data_value['type'] = message_type
-        data_value['id'] = self.__request_id
+                data_value['info'][info_key] = datacopy['info'][info_key]
         self.__addSigOrAuth(data_value)
-        if message_type == 'EVT':
-            data_value['events'] = data['events']
-        self._generateRequestId()
-        return json.dumps(data_value, separators=(',', ':'),
+        result = json.dumps(data_value, separators=(',', ':'),
                           ensure_ascii=False, encoding="utf-8")
+        self._generateRequestId()
+        return result
 
     def __getDataKeyOrder(self, message_type):
         keys = []
