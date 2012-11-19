@@ -1,0 +1,3 @@
+[submodule "lib/mock"]
+	path = lib/mock
+	url = https://github.com/Vanuan/mock.git
