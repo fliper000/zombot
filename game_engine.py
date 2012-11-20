@@ -41,11 +41,15 @@ class Game():
         '''
         pass
 
-    def startGame(self, server_time):
+    def startGame(self, server_time, session_key):
         self.__factory.setRequestId(server_time)
+        self.__factory.setSessionKey(session_key)
         self.send({'type':"START", 'lang': 'en', 'info': self._getUserInfo(),
                    'ad':'user_apps', 'serverTime':server_time,
                    'clientTime':self._getClientTime()})
+
+    def _getSessionKey(self):
+        return self.__factory._getSessionKey()
 
     def _getInitialId(self):
         '''

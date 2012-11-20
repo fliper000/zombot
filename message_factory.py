@@ -120,6 +120,11 @@ class Factory():
     def setRequestId(self, request_id):
         self.__request_id = request_id
 
+    def _getSessionKey(self):
+        return self.__session.getSessionKey()
+
+    def setSessionKey(self, session_key):
+        self.__session.setSessionKey(session_key)
 
 class Request():
     '''

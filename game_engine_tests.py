@@ -22,6 +22,7 @@ class Test(unittest.TestCase):
         CLIENT_TIME = 3162
         USER_INFO = 'user_info'
         SERVER_TIME = 1000000000
+        SESSION_KEY = 'session_key'
         # setup
         connection = Mock()
         game = game_engine.Game(connection, user_id='user_id', auth_key='auth_key')
@@ -31,7 +32,7 @@ class Test(unittest.TestCase):
         game.send = Mock()
 
         # exercise
-        game.startGame(SERVER_TIME)
+        game.startGame(SERVER_TIME, SESSION_KEY)
 
         # verify
         game.send.assert_called_once_with({"type":"START",
@@ -40,6 +41,9 @@ class Test(unittest.TestCase):
                                            "lang":"en",
                                            "serverTime":SERVER_TIME,
                                            "info": USER_INFO})
+        # should set session key
+        self.assertEqual(SESSION_KEY, game._getSessionKey())
+        # should set request id
 
     def testSendShouldCallConnectionSendRequest(self):
         BASE_REQUEST_ID = 49
