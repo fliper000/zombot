@@ -80,7 +80,7 @@ class Factory():
 
     def __createDataValue(self, data, data_keys_order):
         datacopy= data.copy()
-        datacopy['user'] = self.__session.getUserId()
+        datacopy['user'] = str(self.__session.getUserId())
         datacopy['id'] = self.__request_id
         datacopy['sig'] = ''
         datacopy['auth'] = ''
@@ -100,26 +100,6 @@ class Factory():
                           ensure_ascii=False, encoding="utf-8")
         self._generateRequestId()
         return result
-
-    def __getDataKeyOrder(self, message_type):
-        keys = []
-        if message_type == 'TIME':
-            keys = []
-        if message_type == 'START':
-            keys = [
-                    'id',
-                    'sig',
-                    'clientTime',
-                    'serverTime',
-                    'info',
-                    'type',
-                    'user',
-                    'ad',
-                    'lang',
-                    ]
-        if message_type == 'EVT':
-            keys = []
-        return keys
 
     def __addSigOrAuth(self, objectData):
         sessionKey = self.__session.getSessionKey()
