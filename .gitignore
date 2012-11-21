@@ -1,5 +1,8 @@
 *.py[co]
 
+# settings file
+settings.ini
+
 # Packages
 *.egg
 *.egg-info
