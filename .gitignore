@@ -4,6 +4,9 @@
 settings.ini
 zombiefarm.html
 
+# eclipse files
+.settings/org.eclipse.core.resources.prefs
+
 # Packages
 *.egg
 *.egg-info
