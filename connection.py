@@ -2,6 +2,7 @@ import urllib
 import urllib2
 import StringIO
 import gzip
+import Cookie
 
 class Connection(object):
     def __init__(self, url):
@@ -13,7 +14,7 @@ class Connection(object):
         '''
         self.__url = new_url
 
-    def sendRequest(self, data=None, cookies=None):
+    def sendRequest(self, data=None, cookies=None, getCookies=False):
         opener = urllib2.build_opener()
         opener.addheaders = self.getHeaders().items()
         if cookies is not None:
@@ -30,7 +31,10 @@ class Connection(object):
             content = response.read()
         content = content.decode(encoding)
         opener.close()
-        return content
+        if getCookies:
+            return Cookie.SimpleCookie(response.info().get('Set-Cookie'))
+        else:
+            return content
 
     def getHeaders(self):
         return {'User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:16.0) Gecko/20100101 Firefox/16.0',
