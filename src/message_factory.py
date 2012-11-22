@@ -18,14 +18,17 @@ def __saltFunction(string):
     result += str(characterSum)
     return result
 
+
 def calcCRC(string):
     return hashsum._md5hash(string + __saltFunction(string))
+
 
 def calcSig(sessionKey, requestId, authKey):
     sig = sessionKey + str(requestId) + authKey
     sig += __saltFunction(sig)
     sig = hashsum._md5hash(sig)
     return sig
+
 
 def calcAuth(requestId, authKey):
     auth = str(requestId) + authKey
@@ -39,7 +42,8 @@ class Session():
     This class represents session data needed
     to authenticate and sign messages
     '''
-    def __init__(self, user_id, auth_key, client_version=1351866062, session_key=None):
+    def __init__(self, user_id, auth_key, client_version=1351866062,
+                  session_key=None):
         self.__user_id = user_id          # vk user id
         self.__session_key = session_key  # session key from TIME request
         self.__auth_session_key = None    # key from TIME response
@@ -69,7 +73,7 @@ class Factory():
     def __init__(self, session, base_request_id=55):
         self.__session = session
         assert isinstance(self.__session, Session)
-        self.BASE_REQUEST_ID = base_request_id # "magick" initial value
+        self.BASE_REQUEST_ID = base_request_id  # "magick" initial value
         self.__request_id = self.BASE_REQUEST_ID
 
     def createRequest(self, data, data_keys_order=None):
@@ -79,7 +83,7 @@ class Factory():
         return Request(request_data)
 
     def __createDataValue(self, data, data_keys_order):
-        datacopy= data.copy()
+        datacopy = data.copy()
         datacopy['user'] = str(self.__session.getUserId())
         datacopy['id'] = self.__request_id
         datacopy['sig'] = ''
@@ -107,7 +111,8 @@ class Factory():
         authSessionKey = self.__session.getAuthSessionKey()
 
         if sessionKey is not None:
-            objectData["sig"] = calcSig(sessionKey, self.__request_id, auth_key)
+            objectData["sig"] = calcSig(sessionKey, self.__request_id,
+                                        auth_key)
         else:
             objectData["auth"] = calcAuth(self.__request_id, auth_key)
             if authSessionKey is not None:
@@ -125,6 +130,7 @@ class Factory():
 
     def setSessionKey(self, session_key):
         self.__session.setSessionKey(session_key)
+
 
 class Request():
     '''

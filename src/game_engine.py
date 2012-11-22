@@ -1,6 +1,8 @@
 import random
 import message_factory
 from message_factory import Session
+
+
 class Game():
 
     def __init__(self, connection, user_id, auth_key):
@@ -32,7 +34,7 @@ class Game():
         # handle EVT response
 
     def getTime(self):
-        self.send({'type':"TIME", 'id': self._getInitialId()})
+        self.send({'type': "TIME", 'id': self._getInitialId()})
         return {}
 
     def _getUserInfo(self):
@@ -44,9 +46,9 @@ class Game():
     def startGame(self, server_time, session_key):
         self.__factory.setRequestId(server_time)
         self.__factory.setSessionKey(session_key)
-        self.send({'type':"START", 'lang': 'en', 'info': self._getUserInfo(),
-                   'ad':'user_apps', 'serverTime':server_time,
-                   'clientTime':self._getClientTime()})
+        self.send({'type': "START", 'lang': 'en', 'info': self._getUserInfo(),
+                   'ad': 'user_apps', 'serverTime': server_time,
+                   'clientTime': self._getClientTime()})
 
     def _getSessionKey(self):
         return self.__factory._getSessionKey()
@@ -54,7 +56,8 @@ class Game():
     def _getInitialId(self):
         '''
         flash.utils.getTimer() called to get initial request id.
-        http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/utils/package.html#getTimer()
+        http://help.adobe.com/en_US/FlashPlatform/reference/
+        actionscript/3/flash/utils/package.html#getTimer()
         varies randomly from 40 to 60
         '''
         random.seed()
@@ -75,8 +78,8 @@ class Game():
         if('id' in data):
             assert data['type'] == 'TIME'
             self._createFactory(data['id'])
-        request = self.__factory.createRequest(data,
-                                               self.__getDataKeyOrder(data['type']))
+        request = self.__factory.createRequest(
+                        data, self.__getDataKeyOrder(data['type']))
         self.__connection.sendRequest(request.getData())
 
     def _createFactory(self, requestId):

@@ -1,6 +1,7 @@
 import settings
 import vkutils
 
+
 class AppHtmlWriter():
     def __init__(self, app_id, settings_filename):
         _settings = settings.Settings(settings_filename)
@@ -22,7 +23,7 @@ class AppHtmlWriter():
 <object
                 type="application/x-shockwave-flash"
                 id="flashobj"
-                data="http://s.shadowlands.ru/zombievk-res/zombiefarm.swf?ver=f6fddb4c3ab302562f2e74bb7f4bae702b5f33de"
+                data="http://s.shadowlands.ru/zombievk-res/zombiefarm.swf"
                 width="100%"
                 height="100%">
                 <param name="width" value="707">

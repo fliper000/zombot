@@ -1,4 +1,6 @@
 import ConfigParser
+
+
 class Settings():
     def __init__(self, filename='settings.ini'):
         self.parser = ConfigParser.ConfigParser()

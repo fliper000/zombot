@@ -2,6 +2,8 @@ from connection import Connection
 from settings import Settings
 import re
 import json
+
+
 class VK():
     def __init__(self, credentials):
         self._credentials = credentials
@@ -34,18 +36,19 @@ class VK():
         if not cookies_are_valid:
             username = self._credentials.getUserEmail()
             password = self._credentials.getUserPassword()
-            post = {'act':'login',
-                    'role':'al_frame',
-                    'expire':'',
-                    'captcha_sid':'',
-                    'captcha_key':'',
-                    '_origin':'http://vk.com',
-                    'email':username,
-                    'pass':password}
+            post = {'act': 'login',
+                    'role': 'al_frame',
+                    'expire': '',
+                    'captcha_sid': '',
+                    'captcha_key': '',
+                    '_origin': 'http://vk.com',
+                    'email': username,
+                    'pass': password}
             vk = Connection('http://login.vk.com/?act=login')
             session_cookies = vk.sendRequest(post, getCookies=True)
             session_cookies = ('Cookie:' +
-                              session_cookies.output(attrs=[], header='', sep=';'))
+                               session_cookies.output(attrs=[],
+                                                      header='', sep=';'))
             self._credentials.setSessionCookies(session_cookies)
         return session_cookies
 
