@@ -2,6 +2,7 @@
 
 # settings file
 settings.ini
+zombiefarm.html
 
 # Packages
 *.egg
