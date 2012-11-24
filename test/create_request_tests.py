@@ -1,9 +1,10 @@
-# coding=utf8
+# coding=utf-8
 
 import unittest
 
 import message_factory
 import collections
+
 
 class Test(unittest.TestCase):
 
