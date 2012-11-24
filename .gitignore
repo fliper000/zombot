@@ -7,6 +7,8 @@ zombiefarm.html
 # eclipse files
 .settings/org.eclipse.core.resources.prefs
 
+target
+
 # Packages
 *.egg
 *.egg-info
