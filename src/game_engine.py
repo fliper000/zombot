@@ -54,8 +54,6 @@ class Game():
     def _getSessionKey(self):
         return self.__factory._getSessionKey()
 
-
-
     def _getClientTime(self):
         random.seed()
         return random.randrange(2800, 4000)
@@ -70,35 +68,8 @@ class Game():
         assert 'type' in data
         if('id' in data):
             assert data['type'] == 'TIME'
-        request = self.__factory.createRequest(
-                        data, self.__getDataKeyOrder(data['type']))
+        request = self.__factory.createRequest(data)
         request.send(self.__connection)
 
     def _createFactory(self, requestId=None):
         self.__factory = message_factory.Factory(self.__session, requestId)
-
-    def __getDataKeyOrder(self, message_type):
-        keys = []
-        if message_type == 'TIME':
-            keys = ['auth', 'type', 'clientVersion', 'user',  'id', ]
-        if message_type == 'START':
-            keys = [
-                    'id',
-                    'sig',
-                    'clientTime',
-                    'serverTime',
-                    'info',
-                    'type',
-                    'user',
-                    'ad',
-                    'lang',
-                    ]
-        if message_type == 'EVT':
-            keys = [
-                   'user',
-                   'type',
-                   'id',
-                   'sig',
-                   'events'
-                   ]
-        return keys

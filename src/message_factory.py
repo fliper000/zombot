@@ -44,7 +44,7 @@ class Session():
     to authenticate and sign messages
     '''
     def __init__(self, user_id, auth_key, client_version=1351866062,
-                  session_key=None):
+                 session_key=None):
         self.__user_id = user_id          # vk user id
         self.__session_key = session_key  # session key from TIME request
         self.__auth_session_key = None    # key from TIME response
@@ -86,6 +86,8 @@ class Factory():
         return Request(request_data)
 
     def __createDataValue(self, data, data_keys_order):
+        if data_keys_order is None:
+            data_keys_order = _getDataKeyOrder(data['type'])
         datacopy = data.copy()
         datacopy['user'] = str(self.__session.getUserId())
         datacopy['id'] = self.__request_id
@@ -104,7 +106,7 @@ class Factory():
                 data_value['info'][info_key] = datacopy['info'][info_key]
         self.__addSigOrAuth(data_value)
         result = json.dumps(data_value, separators=(',', ':'),
-                          ensure_ascii=False, encoding="utf-8")
+                            ensure_ascii=False, encoding="utf-8")
         self._generateRequestId()
         return result
 
@@ -175,3 +177,30 @@ def _getInitialId():
     '''
     random.seed()
     return random.randrange(40, 60)
+
+
+def _getDataKeyOrder(message_type):
+    keys = []
+    if message_type == 'TIME':
+        keys = ['auth', 'type', 'clientVersion', 'user',  'id', ]
+    if message_type == 'START':
+        keys = [
+            'id',
+            'sig',
+            'clientTime',
+            'serverTime',
+            'info',
+            'type',
+            'user',
+            'ad',
+            'lang',
+        ]
+    if message_type == 'EVT':
+        keys = [
+            'user',
+            'type',
+            'id',
+            'sig',
+            'events'
+        ]
+    return keys
