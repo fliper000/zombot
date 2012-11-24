@@ -6,6 +6,7 @@
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python 2.7</pydev_property>
 <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
 <path>/zombot/lib/mock</path>
-<path>/zombot/src/</path>
+<path>/zombot/test</path>
+<path>/zombot/src</path>
 </pydev_pathproperty>
 </pydev_project>

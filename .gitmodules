@@ -1,3 +1,6 @@
 [submodule "lib/mock"]
 	path = lib/mock
 	url = https://github.com/Vanuan/mock.git
+[submodule "lib/pybuilder"]
+	path = lib/pybuilder
+	url = git://github.com/pybuilder/pybuilder.git
