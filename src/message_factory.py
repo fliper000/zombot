@@ -3,6 +3,7 @@
 import hashsum
 import json
 import collections
+import random
 
 
 def __saltFunction(string):
@@ -70,7 +71,9 @@ class Factory():
     '''
     This class will be used to generate signed messages
     '''
-    def __init__(self, session, base_request_id=55):
+    def __init__(self, session, base_request_id=None):
+        if base_request_id is None:
+            base_request_id = _getInitialId()
         self.__session = session
         assert isinstance(self.__session, Session)
         self.BASE_REQUEST_ID = base_request_id  # "magick" initial value
@@ -145,10 +148,30 @@ class Request():
     def getData(self):
         return self.__data
 
+    def send(self, connection):
+        connection.sendRequest(self.getData())
+
 
 class Response():
     '''
     This class represents a response
     '''
-    def __init__(self):
-        pass
+    def __init__(self, response_string):
+        crc, response = response_string.split("$")
+        if(calcCRC(response) != crc):
+            raise ValueError("CRC is invalid: " + response_string)
+        self.__response = json.loads(response)
+
+    def getDict(self):
+        return self.__response
+
+
+def _getInitialId():
+    '''
+    flash.utils.getTimer() called to get initial request id.
+    http://help.adobe.com/en_US/FlashPlatform/reference/
+    actionscript/3/flash/utils/package.html#getTimer()
+    varies randomly from 40 to 60
+    '''
+    random.seed()
+    return random.randrange(40, 60)

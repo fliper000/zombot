@@ -197,7 +197,6 @@ class Test(unittest.TestCase):
                            }
         self.assertEqual(expected_params, actual_params)
 
-
     def testCRCUnicode(self):
         # exercise
         crc = message_factory.__dict__['calcCRC'](u'Ф')
@@ -205,3 +204,9 @@ class Test(unittest.TestCase):
         # verify
         expectedCRC = "401f0ddfb82395f7b8484bcf48fd360a"
         self.assertEqual(expectedCRC, crc)
+
+    def testGetInitialIdShouldReturn40to60(self):
+        self.assertLessEqual(
+            40, message_factory._getInitialId())
+        self.assertGreaterEqual(
+            60, message_factory._getInitialId())

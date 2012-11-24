@@ -10,6 +10,7 @@ class Game():
         self.__session = Session(user_id, auth_key,
                                  client_version=self._getClientVersion()
                                  )
+        self._createFactory()
 
     def start(self):
         # load items dictionary
@@ -34,7 +35,7 @@ class Game():
         # handle EVT response
 
     def getTime(self):
-        self.send({'type': "TIME", 'id': self._getInitialId()})
+        self.send({'type': "TIME"})
         return {}
 
     def _getUserInfo(self):
@@ -53,15 +54,7 @@ class Game():
     def _getSessionKey(self):
         return self.__factory._getSessionKey()
 
-    def _getInitialId(self):
-        '''
-        flash.utils.getTimer() called to get initial request id.
-        http://help.adobe.com/en_US/FlashPlatform/reference/
-        actionscript/3/flash/utils/package.html#getTimer()
-        varies randomly from 40 to 60
-        '''
-        random.seed()
-        return random.randrange(40, 60)
+
 
     def _getClientTime(self):
         random.seed()
@@ -77,12 +70,11 @@ class Game():
         assert 'type' in data
         if('id' in data):
             assert data['type'] == 'TIME'
-            self._createFactory(data['id'])
         request = self.__factory.createRequest(
                         data, self.__getDataKeyOrder(data['type']))
-        self.__connection.sendRequest(request.getData())
+        request.send(self.__connection)
 
-    def _createFactory(self, requestId):
+    def _createFactory(self, requestId=None):
         self.__factory = message_factory.Factory(self.__session, requestId)
 
     def __getDataKeyOrder(self, message_type):
