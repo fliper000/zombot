@@ -40,3 +40,11 @@ class TestResponse(unittest.TestCase):
         # verify
         expected_response = {"cmd": "EVT", "id": "1", "events": []}
         self.assertEqual(expected_response, actual_response)
+
+    def testResponseMayNotContainCRC(self):
+        try:
+            # exercise
+            message_factory.Response('{}')
+        except ValueError:
+            # verify
+            self.fail("Exception should not have been raised")

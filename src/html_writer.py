@@ -1,5 +1,6 @@
 import settings
 import vkutils
+import logging
 
 
 class AppHtmlWriter():
@@ -48,5 +49,6 @@ class AppHtmlWriter():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     writer = AppHtmlWriter(612925, 'settings.ini')
-    writer.write('zombiefarm.html')
+    writer.write('html/zombiefarm.html')

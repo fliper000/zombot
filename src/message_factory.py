@@ -3,7 +3,11 @@
 import hashsum
 import json
 import collections
+
 import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def __saltFunction(string):
@@ -151,7 +155,28 @@ class Request():
         return self.__data
 
     def send(self, connection):
-        connection.sendRequest(self.getData())
+        '''
+        Sends request data to server,
+        handles redirect
+        Returns response as dict
+        '''
+        response = self.send_request_get_response(connection)
+        if 'redirect' in response:
+            server_url = response['redirect'] + '/go'
+            connection.setUrl(server_url)
+        if 'cmd' in response:
+            if response['cmd'] == 'REDIRECT':
+                # send request again with new url
+                response = self.send_request_get_response(connection)
+            elif response['cmd'] == 'ERR':
+                error_msg = response["msg"]
+                logger.error(error_msg)
+                # TODO send error to the game server
+                raise ValueError("Game server returned error: " + error_msg)
+        return response
+
+    def send_request_get_response(self, connection):
+        return Response(connection.sendRequest(self.getData())).getDict()
 
 
 class Response():
@@ -159,9 +184,12 @@ class Response():
     This class represents a response
     '''
     def __init__(self, response_string):
-        crc, response = response_string.split("$")
-        if(calcCRC(response) != crc):
-            raise ValueError("CRC is invalid: " + response_string)
+        if '$' in response_string:
+            crc, response = response_string.split("$")
+            if(calcCRC(response) != crc):
+                raise ValueError("CRC is invalid: " + crc)
+        else:
+            response = response_string
         self.__response = json.loads(response)
 
     def getDict(self):

@@ -1,6 +1,8 @@
 import unittest
 import game_engine
-from mock import Mock
+from mock import Mock, MagicMock
+import message_factory
+from message_factory import calcCRC
 
 
 class Test(unittest.TestCase):
@@ -9,8 +11,8 @@ class Test(unittest.TestCase):
         # setup
         connection = Mock()
         game = game_engine.Game(connection, user_id='user_id',
-                                auth_key='auth_key')
-        game.send = Mock()
+                                auth_key='auth_key', access_token=None)
+        game.send = MagicMock()
         game._getInitialId = lambda: BASE_REQUEST_ID
 
         # exercise
@@ -23,17 +25,28 @@ class Test(unittest.TestCase):
         BASE_REQUEST_ID = 49
         # setup
         connection = Mock()
+        expected_key = '678652045157661214'
+        expected_time = 1353868293322
+        request_string = ('{"cmd":"TIME","key":"' + expected_key + '",'
+                         '"redirect":'
+                         '"http://95.163.80.23/zombievk",'
+                         '"id":"45","time":' +
+                         str(expected_time) + '}')
+        request_string = (message_factory.calcCRC(request_string) +
+                         '$' + request_string)
+        connection.sendRequest = Mock(return_value=request_string)
         game = game_engine.Game(connection, user_id='user_id',
-                                auth_key='auth_key')
-        game.send = Mock()
+                                auth_key='auth_key', access_token=None)
         game._getInitialId = lambda: BASE_REQUEST_ID
 
         # exercise
-        game.getTime()
+        actual_key, actual_time = game.getTime()
 
         # verify
+        self.assertEqual(expected_time, actual_time)
+        self.assertEqual(expected_key, actual_key)
 
-    def testStartShouldCallSend(self):
+    def testStartGameShouldCallSend(self):
         CLIENT_TIME = 3162
         USER_INFO = 'user_info'
         SERVER_TIME = 1000000000
@@ -41,7 +54,7 @@ class Test(unittest.TestCase):
         # setup
         connection = Mock()
         game = game_engine.Game(connection, user_id='user_id',
-                                auth_key='auth_key')
+                                auth_key='auth_key', access_token=None)
         game._getUserInfo = lambda: USER_INFO
         game._getClientTime = lambda: CLIENT_TIME
         game._createFactory(SERVER_TIME)
@@ -69,10 +82,11 @@ class Test(unittest.TestCase):
 
         # setup
         game_server_connection = Mock()
-        game_server_connection.sendRequest = Mock(return_value="{}")
+        game_server_connection.sendRequest = Mock(return_value=calcCRC('{}')
+                                                  + "${}")
         game = game_engine.Game(game_server_connection,
                                 user_id=USER_ID,
-                                auth_key=AUTH_KEY)
+                                auth_key=AUTH_KEY, access_token=None)
         game._getInitialId = lambda: BASE_REQUEST_ID
         game._createFactory(BASE_REQUEST_ID)
         game._setClientVersion(CLIENT_VERSION)

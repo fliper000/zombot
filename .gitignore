@@ -2,7 +2,10 @@
 
 # settings file
 settings.ini
+src/html
 zombiefarm.html
+items.txt
+game.json
 
 # eclipse files
 .settings/org.eclipse.core.resources.prefs

@@ -19,6 +19,7 @@ default_task = "analyze"
 @init
 def initialize (project):
     project.build_depends_on("mock")
+    project.build_depends_on("vkontakte")
     project.build_depends_on("flake8")
 
     project.set_property('dir_source_main_python', 'src')

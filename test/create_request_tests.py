@@ -4,6 +4,8 @@ import unittest
 
 import message_factory
 import collections
+from message_factory import Request, calcCRC
+from mock import Mock, call
 
 
 class Test(unittest.TestCase):
@@ -211,3 +213,36 @@ class Test(unittest.TestCase):
             40, message_factory._getInitialId())
         self.assertGreaterEqual(
             60, message_factory._getInitialId())
+
+    def testRequestSendShouldHandleRedirect(self):
+        # setup
+        connection = Mock()
+        request = Request('')
+        server_url = 'http://95.163.80.23/zombievk'
+        response = '{"redirect":"' + server_url + '"}'
+        connection.sendRequest = Mock(return_value=calcCRC(response) + '$' +
+                                      response)
+        connection.setUrl = Mock()
+
+        # exercise
+        request.send(connection)
+
+        # verify
+        connection.setUrl.assert_called_with(server_url + '/go')
+        self.assertEqual(1, connection.sendRequest.call_count)
+
+    def test_request_send_should_handle_redirect_cmd(self):
+        # setup
+        connection = Mock()
+        request = Request('')
+        response = ('{"cmd":"REDIRECT",'
+                    '"redirect":"http://95.163.80.23/zombievk"}')
+        connection.sendRequest = Mock(return_value=calcCRC(response) + '$' +
+                                      response)
+        connection.setUrl = Mock()
+
+        # exercise
+        request.send(connection)
+
+        # verify
+        self.assertEqual(2, connection.sendRequest.call_count)

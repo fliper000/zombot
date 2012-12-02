@@ -3,6 +3,9 @@ import urllib2
 import StringIO
 import gzip
 import Cookie
+import logging
+
+logger = logging.getLogger('connection')
 
 
 class Connection(object):
@@ -22,6 +25,7 @@ class Connection(object):
             opener.addheaders += [('Cookie', cookies)]
         if data is not None:
             data = urllib.urlencode(data)
+        logger.info('request: ' + self.__url + ' ' + str(data))
         response = opener.open(self.__url, data)
         encoding = response.headers.getparam('charset')
         if response.info().get('Content-Encoding') == 'gzip':
@@ -32,6 +36,7 @@ class Connection(object):
             content = response.read()
         content = content.decode(encoding)
         opener.close()
+        logger.info('response: ' + content)
         if getCookies:
             return Cookie.SimpleCookie(response.info().get('Set-Cookie'))
         else:
