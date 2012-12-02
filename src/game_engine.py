@@ -5,8 +5,9 @@ from message_factory import Session
 import vkontakte
 import logging
 import time
-from game_state.game_event import dict2obj, ApplyGiftEvent, Gift,\
-    obj2dict
+from game_state.game_event import dict2obj, obj2dict, GameItemReader
+from game_state.game_types import GameEVT, GameTIME, GameSTART,\
+    GameApplyGiftEvent, GameGift, GameInfo
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,11 @@ class Game():
                                  client_version=self._getClientVersion()
                                  )
         self._createFactory()
+        self.__itemReader = GameItemReader()
+        self.__itemReader.read('items.txt')
+        self.__events_to_handle = []
+        self.__receive_gifts_with_messages = False
+        self.__receive_only_free_gifts = True
 
     def start(self):
         # load items dictionary
@@ -30,8 +36,9 @@ class Game():
         session_key, server_time = self.getTime()
 
         # send START
-        self.startGame(server_time, session_key)
+        start_response = self.startGame(server_time, session_key)
         # TODO parse game state
+        self.__game_state = start_response.state
 
         # TODO send getMissions
         # TODO handle getMissions response
@@ -45,35 +52,77 @@ class Game():
         handle EVT response
         '''
         while(True):
-            events = self.event()
-            logger.info("events: " + str(events))
-            for event in events:
+            self.sendGameEvents()
+            if len(self.__events_to_handle) > 0:
+                logger.info("received events: " + str(self.__events_to_handle))
+            for event in self.__events_to_handle:
                 self.handleEvent(event)
+            self.automaticActions()
             time.sleep(30)
 
-    def event(self, events=[]):
+    def automaticActions(self):
+        self.receiveAllGifts()
+
+    def receiveAllGifts(self):
+        gifts = self.__game_state.gifts
+        if len(gifts) > 0:
+            logger.info("receiving all gifts:")
+        for gift in gifts:
+            self.receiveGift(gift)
+
+    def receiveGift(self, gift):
+        item = dict2obj(self.__itemReader.get(gift.item))
+        # logger.info(obj2dict(gift))
+        gift_name = "подарок '" + item.name + u"'"
+        if hasattr(gift, 'msg') and gift.msg != '':
+            gift_name += " с сообщением: '" + gift.msg + "'"
+            if not self.__receive_gifts_with_messages:
+                return
+        if hasattr(item, 'moved') and item.moved == True:
+            logger.info(gift_name + "' нужно поместить")
+            return
+        if hasattr(gift, 'free') and gift.free:
+            gift_name = 'бесплатный ' + gift_name
+        else:
+            if self.__receive_only_free_gifts:
+                return
+
+        logger.info(u"Принимаю " + gift_name +
+                    u" от " + gift.user)
+        apply_gift_event = GameApplyGiftEvent(gift=GameGift(id=gift.id))
+        self.sendGameEvents([apply_gift_event])
+        self.removeGiftFromGameState(gift)
+
+    def removeGiftFromGameState(self, gift):
+        for current_gift in self.__game_state.gifts:
+            if gift.id == current_gift.id:
+                self.__game_state.gifts.remove(current_gift)
+                break
+
+    def sendGameEvents(self, events=[]):
         '''
         Returns key (string) and time (int)
         '''
-        logger.info("events to send" + str(events))
-        response = self.send({'type': "EVT", 'events': events})
-        game_response = dict2obj(response)
-        return game_response.events
+        if len(events) > 0:
+            logger.info("events to send: " + str(events))
+        command = GameEVT(events=events)
+        game_response = self.send(command)
+        self.__events_to_handle += game_response.events
 
     def handleEvent(self, event_to_handle):
         if event_to_handle.action == 'addGift':
-            logger.info(u"Получен подарок от " +
-                        event_to_handle.gift.user + u". Принять!")
-            gift_id = event_to_handle.gift.id
-            apply_gift_event = ApplyGiftEvent(Gift(gift_id))
-            print self.event([obj2dict(apply_gift_event)])
+            logger.info(u"Получен подарок.")
+            gift = event_to_handle.gift
+            self.receiveGift(gift)
+            self.__events_to_handle.remove(event_to_handle)
 
     def getTime(self):
         '''
         Returns key (string) and time (int)
         '''
-        response = self.send({'type': "TIME"})
-        return response["key"], response["time"]
+        command = GameTIME()
+        response = self.send(command)
+        return response.key, response.time
 
     def _getUserInfo(self):
         '''
@@ -89,14 +138,19 @@ class Game():
         info['country'] = my_country['name']
         my_city = api.places.getCityById(cids=int(info['city']))[0]
         info['city'] = my_city['name']
-        return info
+        game_info = GameInfo(city=info['city'], first_name=info['first_name'],
+                 last_name=info['last_name'],
+                 uid=info['uid'], country=info['country'],
+                 sex=info['sex'], bdate=info['bdate'])
+        return game_info
 
     def startGame(self, server_time, session_key):
         self.__factory.setRequestId(server_time)
         self.__factory.setSessionKey(session_key)
-        self.send({'type': "START", 'lang': 'en', 'info': self._getUserInfo(),
-                   'ad': 'user_apps', 'serverTime': server_time,
-                   'clientTime': self._getClientTime()})
+        command = GameSTART(lang=u'en', info=self._getUserInfo(),
+                      ad=u'user_apps', serverTime=server_time,
+                      clientTime=self._getClientTime())
+        return self.send(command)
 
     def _getSessionKey(self):
         return self.__factory._getSessionKey()
@@ -112,11 +166,10 @@ class Game():
         self.__session.CLIENT_VERSION = version
 
     def send(self, data):
+        data = obj2dict(data)
         assert 'type' in data
-        if('id' in data):
-            assert data['type'] == 'TIME'
         request = self.__factory.createRequest(data)
-        return request.send(self.__connection)
+        return dict2obj(request.send(self.__connection))
 
     def _createFactory(self, requestId=None):
         self.__factory = message_factory.Factory(self.__session, requestId)
