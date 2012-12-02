@@ -6,6 +6,9 @@ import logging
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
+    connection_logger = logging.getLogger('connection')
+    connection_logger.propagate = False
+    connection_logger.addHandler(logging.FileHandler('connection.log'))
     settings = Settings()
     params = vkutils.VK(settings).getAppParams('612925')
     user_id = params['viewer_id']
