@@ -1,8 +1,3 @@
-'''
-Created on 28.11.2012
-
-@author: john
-'''
 import json
 from connection import Connection
 import logging
@@ -18,7 +13,9 @@ def dict2obj(d, name=None):
             return d
 
         # d is dict, handle complex type
-        if 'type' in d:
+        if 'action' in d:
+            class_name = d['action']
+        elif 'type' in d:
             class_name = d['type']
         elif 'cmd' in d:
             class_name = d['cmd'] + 'Command'
@@ -26,6 +23,11 @@ def dict2obj(d, name=None):
             class_name = name
         else:
             class_name = 'UnknownObject'
+        if name is not None:
+            if name == 'event':
+                class_name += "Event"
+            elif name == 'mission':
+                class_name += "Mission"
         class_name = 'Game' + class_name[0].upper() + class_name[1:]
         if 'action' in d:
             base_class_name = 'GameAction'

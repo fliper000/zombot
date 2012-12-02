@@ -26,13 +26,18 @@ class klass(object):
                 suppress_reserved = ''
             string_join = ',%s\n                 ' % suppress_reserved
             string += ('    def __init__(self, %s):%s\n' %
-                       (string_join.join(self.attrs.keys()),
+                       (string_join.join(filter(lambda x: type(self.attrs[x]) == type, self.attrs.keys())),
                         suppress_reserved)
                        )
-            for key, value in sorted(self.attrs.iteritems()):
-                string += '        assert isinstance(%s, %s)\n' % (key, value)
-            for key in sorted(self.attrs):
-                string += '        self.%s = %s\n' % (key, key)
+            for attr_name, attr_value in sorted(self.attrs.iteritems()):
+                if type(attr_value) == type:
+                    string += '        assert isinstance(%s, %s)\n' % (attr_name,
+                                                                       attr_value.__name__)
+            for attr_name, attr_value in sorted(self.attrs.iteritems()):
+                if type(attr_value) == type:
+                    string += '        self.%s = %s\n' % (attr_name, attr_name)
+                else:
+                    string += '        self.%s = \'%s\'\n' % (attr_name, attr_value)
         string += '\n\n'
         return string
 
@@ -58,8 +63,11 @@ def generate_klasses(obj):
         class_bases = [base.__name__ for base in type(obj).__bases__]
         instance_attributes = {}
         for attr_name, attr_value in obj.__dict__.iteritems():
-            attr_type = type(attr_value).__name__
-            instance_attributes[attr_name] = attr_type
+            attr_type = type(attr_value)
+            if attr_name in ['action', 'type', 'item', 'cmd']:
+                instance_attributes[attr_name] = attr_value
+            else:
+                instance_attributes[attr_name] = attr_type
         for key in obj.__dict__:
             klasses.update(generate_klasses(obj.__dict__[key]))
         for base in class_bases:
