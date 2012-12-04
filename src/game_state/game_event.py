@@ -15,22 +15,23 @@ def dict2obj(d, name=None):
                     d = long(d)          # (causes errors on android)
             return d
 
+        class_name = ''
         # d is dict, handle complex type
         if 'action' in d:
             class_name = d['action']
-        elif 'type' in d:
-            class_name = d['type']
+        if 'type' in d and not class_name.upper().endswith((d['type'].upper())):
+            class_name += d['type'][0].upper() + d['type'][1:]
         elif 'cmd' in d:
             class_name = d['cmd'] + 'Command'
         elif name is not None:
-            class_name = name
-        else:
-            class_name = 'UnknownObject'
-        if name is not None:
             if name == 'event':
                 class_name += "Event"
             elif name == 'mission':
                 class_name += "Mission"
+            else:
+                class_name += name
+        else:
+            class_name = 'UnknownObject'
         class_name = 'Game' + class_name[0].upper() + class_name[1:]
         if 'action' in d:
             base_class_name = 'GameAction'

@@ -12,7 +12,7 @@ class GameAction(CommonEqualityMixin):
     pass
 
 
-class GameApplyCompGiftEvent(GameAction):
+class GameApplyCompGiftItem(GameAction):
     def __init__(self, itemId,  # @ReservedAssignment
                  extraId,  # @ReservedAssignment
                  objId,  # @ReservedAssignment
@@ -52,7 +52,7 @@ class GameBurySlot(CommonEqualityMixin):
         self.enabled = enabled
 
 
-class GameBuy(GameAction):
+class GameBuyItem(GameAction):
     def __init__(self, itemId,  # @ReservedAssignment
                  objId,  # @ReservedAssignment
                  y,  # @ReservedAssignment
@@ -339,7 +339,7 @@ class GameDailyBonus(CommonEqualityMixin):
         self.prizes = prizes
 
 
-class GameDig(GameAction):
+class GameDigItem(GameAction):
     def __init__(self, objId):  # @ReservedAssignment
         assert isinstance(objId, long)
         self.action = 'dig'
@@ -416,7 +416,7 @@ class GameGameStateEvent(GameAction):
         self.wishlist = wishlist
 
 
-class GameGetMissionsEvent(GameAction):
+class GameGetMissionsMission(GameAction):
     def __init__(self, id,  # @ReservedAssignment
                  missions):  # @ReservedAssignment
         assert isinstance(id, unicode)
@@ -550,12 +550,20 @@ class GameParams(CommonEqualityMixin):
         self.magicLimit = magicLimit
 
 
-class GamePick(GameAction):
+class GamePickItem(GameAction):
     def __init__(self, objId):  # @ReservedAssignment
         assert isinstance(objId, long)
         self.action = 'pick'
         self.objId = objId
         self.type = 'item'
+
+
+class GamePickPickup(GameAction):
+    def __init__(self, pickups):  # @ReservedAssignment
+        assert isinstance(pickups, list)
+        self.action = 'pick'
+        self.pickups = pickups
+        self.type = 'pickup'
 
 
 class GamePlayerSettings(CommonEqualityMixin):
@@ -577,7 +585,7 @@ class GamePrize(GameItem):
         self.item = '@CR_07'
 
 
-class GameRemoteNewYearEvent(GameAction):
+class GameRemoteNewYearItem(GameAction):
     def __init__(self, itemId,  # @ReservedAssignment
                  objId,  # @ReservedAssignment
                  id):  # @ReservedAssignment
@@ -886,6 +894,19 @@ class GameBuilding(GameType):
         self.y = y
 
 
+class GameCoins(GameType):
+    def __init__(self, y,  # @ReservedAssignment
+                 count,  # @ReservedAssignment
+                 x):  # @ReservedAssignment
+        assert isinstance(count, long)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.count = count
+        self.type = 'coins'
+        self.x = x
+        self.y = y
+
+
 class GameCookGraveWithBrains(GameType):
     def __init__(self, speeduped,  # @ReservedAssignment
                  id,  # @ReservedAssignment
@@ -949,7 +970,7 @@ class GameEVT(GameType):
         self.type = 'EVT'
 
 
-class GameGameMissionMission(GameType):
+class GameGameMission(GameType):
     def __init__(self, disabled,  # @ReservedAssignment
                  finished,  # @ReservedAssignment
                  tasks):  # @ReservedAssignment
@@ -1103,7 +1124,7 @@ class GameSlag(GameType):
         self.y = y
 
 
-class GameSocialMission(GameType):
+class GameSocial(GameType):
     def __init__(self, disabled,  # @ReservedAssignment
                  finished,  # @ReservedAssignment
                  limitShow):  # @ReservedAssignment

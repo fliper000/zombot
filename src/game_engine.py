@@ -7,8 +7,8 @@ import logging
 import time
 from game_state.game_event import dict2obj, obj2dict, GameItemReader
 from game_state.game_types import GameEVT, GameTIME, GameSTART,\
-    GameApplyGiftEvent, GameGift, GameInfo, GameDig, GameSlag, \
-    GamePlant, GamePick, GameBuy
+    GameApplyGiftEvent, GameGift, GameInfo, GameDigItem, GameSlag, \
+    GamePlant, GamePickItem, GameBuyItem
 import pprint
 
 logger = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ class Game():
                 logger.info(u"Собираем '" + item.name + "' " + str(plant.id) +
                             u" по координатам (" +
                             str(plant.x) + u", " + str(plant.y) + u")")
-                pick_event = GamePick(plant.id)
+                pick_event = GamePickItem(plant.id)
                 self.sendGameEvents([pick_event])
                 # convert plant to slag
                 plant.type = GameSlag(0L, 0L, 0L).type
@@ -89,7 +89,7 @@ class Game():
             logger.info(u"Копаем '" + item.name + "' " + str(slag.id) +
                         u" по координатам (" +
                         str(slag.x) + ", " + str(slag.y) + u")")
-            dig_event = GameDig(slag.id)
+            dig_event = GameDigItem(slag.id)
             self.sendGameEvents([dig_event])
             # convert slag to ground
             slag.type = 'base'
@@ -102,7 +102,7 @@ class Game():
                         str(ground.id) +
                         u" по координатам (" +
                         str(ground.x) + u", " + str(ground.y) + u")")
-            buy_event = GameBuy(unicode(seed_item.id),
+            buy_event = GameBuyItem(unicode(seed_item.id),
                                 ground.id,
                                 ground.y, ground.x)
             self.sendGameEvents([buy_event])
