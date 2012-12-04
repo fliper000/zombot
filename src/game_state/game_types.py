@@ -8,11 +8,11 @@ class GameApplyCompGiftEvent(GameAction):
                  objId,  # @ReservedAssignment
                  y,  # @ReservedAssignment
                  x):  # @ReservedAssignment
-        assert isinstance(extraId, int)
+        assert isinstance(extraId, long)
         assert isinstance(itemId, unicode)
-        assert isinstance(objId, int)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(objId, long)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.action = 'applyCompGift'
         self.extraId = extraId
         self.itemId = itemId
@@ -40,6 +40,23 @@ class GameBurySlot(object):
     def __init__(self, enabled):
         assert isinstance(enabled, bool)
         self.enabled = enabled
+
+
+class GameBuy(GameAction):
+    def __init__(self, itemId,  # @ReservedAssignment
+                 objId,  # @ReservedAssignment
+                 y,  # @ReservedAssignment
+                 x):  # @ReservedAssignment
+        assert isinstance(itemId, unicode)
+        assert isinstance(objId, long)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.action = 'buy'
+        self.itemId = itemId
+        self.objId = objId
+        self.type = 'item'
+        self.x = x
+        self.y = y
 
 
 class GameCollectionItems(object):
@@ -127,90 +144,90 @@ class GameCollectionItems(object):
                  C_29_3,
                  C_14_1,
                  C_1_2):
-        assert isinstance(C_10_2, int)
-        assert isinstance(C_10_3, int)
-        assert isinstance(C_10_4, int)
-        assert isinstance(C_10_5, int)
-        assert isinstance(C_11_3, int)
-        assert isinstance(C_12_1, int)
-        assert isinstance(C_12_3, int)
-        assert isinstance(C_12_5, int)
-        assert isinstance(C_13_2, int)
-        assert isinstance(C_13_3, int)
-        assert isinstance(C_13_4, int)
-        assert isinstance(C_14_1, int)
-        assert isinstance(C_14_2, int)
-        assert isinstance(C_14_4, int)
-        assert isinstance(C_14_5, int)
-        assert isinstance(C_15_1, int)
-        assert isinstance(C_15_2, int)
-        assert isinstance(C_15_3, int)
-        assert isinstance(C_15_5, int)
-        assert isinstance(C_16_2, int)
-        assert isinstance(C_16_4, int)
-        assert isinstance(C_17_1, int)
-        assert isinstance(C_17_3, int)
-        assert isinstance(C_17_4, int)
-        assert isinstance(C_17_5, int)
-        assert isinstance(C_18_1, int)
-        assert isinstance(C_18_2, int)
-        assert isinstance(C_18_3, int)
-        assert isinstance(C_19_1, int)
-        assert isinstance(C_19_2, int)
-        assert isinstance(C_19_3, int)
-        assert isinstance(C_19_5, int)
-        assert isinstance(C_1_2, int)
-        assert isinstance(C_1_3, int)
-        assert isinstance(C_1_4, int)
-        assert isinstance(C_20_1, int)
-        assert isinstance(C_20_2, int)
-        assert isinstance(C_20_3, int)
-        assert isinstance(C_20_4, int)
-        assert isinstance(C_21_3, int)
-        assert isinstance(C_22_2, int)
-        assert isinstance(C_22_5, int)
-        assert isinstance(C_23_2, int)
-        assert isinstance(C_24_1, int)
-        assert isinstance(C_24_2, int)
-        assert isinstance(C_24_4, int)
-        assert isinstance(C_24_5, int)
-        assert isinstance(C_25_1, int)
-        assert isinstance(C_25_2, int)
-        assert isinstance(C_25_4, int)
-        assert isinstance(C_29_3, int)
-        assert isinstance(C_2_1, int)
-        assert isinstance(C_2_2, int)
-        assert isinstance(C_2_3, int)
-        assert isinstance(C_2_5, int)
-        assert isinstance(C_30_5, int)
-        assert isinstance(C_31_1, int)
-        assert isinstance(C_31_2, int)
-        assert isinstance(C_31_3, int)
-        assert isinstance(C_37_2, int)
-        assert isinstance(C_3_1, int)
-        assert isinstance(C_3_2, int)
-        assert isinstance(C_3_3, int)
-        assert isinstance(C_3_5, int)
-        assert isinstance(C_4_1, int)
-        assert isinstance(C_4_2, int)
-        assert isinstance(C_4_3, int)
-        assert isinstance(C_4_4, int)
-        assert isinstance(C_4_5, int)
-        assert isinstance(C_5_1, int)
-        assert isinstance(C_5_2, int)
-        assert isinstance(C_5_4, int)
-        assert isinstance(C_5_5, int)
-        assert isinstance(C_6_1, int)
-        assert isinstance(C_6_2, int)
-        assert isinstance(C_6_3, int)
-        assert isinstance(C_6_4, int)
-        assert isinstance(C_6_5, int)
-        assert isinstance(C_7_2, int)
-        assert isinstance(C_8_3, int)
-        assert isinstance(C_8_4, int)
-        assert isinstance(C_9_1, int)
-        assert isinstance(C_9_2, int)
-        assert isinstance(C_9_4, int)
+        assert isinstance(C_10_2, long)
+        assert isinstance(C_10_3, long)
+        assert isinstance(C_10_4, long)
+        assert isinstance(C_10_5, long)
+        assert isinstance(C_11_3, long)
+        assert isinstance(C_12_1, long)
+        assert isinstance(C_12_3, long)
+        assert isinstance(C_12_5, long)
+        assert isinstance(C_13_2, long)
+        assert isinstance(C_13_3, long)
+        assert isinstance(C_13_4, long)
+        assert isinstance(C_14_1, long)
+        assert isinstance(C_14_2, long)
+        assert isinstance(C_14_4, long)
+        assert isinstance(C_14_5, long)
+        assert isinstance(C_15_1, long)
+        assert isinstance(C_15_2, long)
+        assert isinstance(C_15_3, long)
+        assert isinstance(C_15_5, long)
+        assert isinstance(C_16_2, long)
+        assert isinstance(C_16_4, long)
+        assert isinstance(C_17_1, long)
+        assert isinstance(C_17_3, long)
+        assert isinstance(C_17_4, long)
+        assert isinstance(C_17_5, long)
+        assert isinstance(C_18_1, long)
+        assert isinstance(C_18_2, long)
+        assert isinstance(C_18_3, long)
+        assert isinstance(C_19_1, long)
+        assert isinstance(C_19_2, long)
+        assert isinstance(C_19_3, long)
+        assert isinstance(C_19_5, long)
+        assert isinstance(C_1_2, long)
+        assert isinstance(C_1_3, long)
+        assert isinstance(C_1_4, long)
+        assert isinstance(C_20_1, long)
+        assert isinstance(C_20_2, long)
+        assert isinstance(C_20_3, long)
+        assert isinstance(C_20_4, long)
+        assert isinstance(C_21_3, long)
+        assert isinstance(C_22_2, long)
+        assert isinstance(C_22_5, long)
+        assert isinstance(C_23_2, long)
+        assert isinstance(C_24_1, long)
+        assert isinstance(C_24_2, long)
+        assert isinstance(C_24_4, long)
+        assert isinstance(C_24_5, long)
+        assert isinstance(C_25_1, long)
+        assert isinstance(C_25_2, long)
+        assert isinstance(C_25_4, long)
+        assert isinstance(C_29_3, long)
+        assert isinstance(C_2_1, long)
+        assert isinstance(C_2_2, long)
+        assert isinstance(C_2_3, long)
+        assert isinstance(C_2_5, long)
+        assert isinstance(C_30_5, long)
+        assert isinstance(C_31_1, long)
+        assert isinstance(C_31_2, long)
+        assert isinstance(C_31_3, long)
+        assert isinstance(C_37_2, long)
+        assert isinstance(C_3_1, long)
+        assert isinstance(C_3_2, long)
+        assert isinstance(C_3_3, long)
+        assert isinstance(C_3_5, long)
+        assert isinstance(C_4_1, long)
+        assert isinstance(C_4_2, long)
+        assert isinstance(C_4_3, long)
+        assert isinstance(C_4_4, long)
+        assert isinstance(C_4_5, long)
+        assert isinstance(C_5_1, long)
+        assert isinstance(C_5_2, long)
+        assert isinstance(C_5_4, long)
+        assert isinstance(C_5_5, long)
+        assert isinstance(C_6_1, long)
+        assert isinstance(C_6_2, long)
+        assert isinstance(C_6_3, long)
+        assert isinstance(C_6_4, long)
+        assert isinstance(C_6_5, long)
+        assert isinstance(C_7_2, long)
+        assert isinstance(C_8_3, long)
+        assert isinstance(C_8_4, long)
+        assert isinstance(C_9_1, long)
+        assert isinstance(C_9_2, long)
+        assert isinstance(C_9_4, long)
         self.C_10_2 = C_10_2
         self.C_10_3 = C_10_3
         self.C_10_4 = C_10_4
@@ -302,7 +319,7 @@ class GameDailyBonus(object):
                  current,
                  playFrom,
                  prizes):
-        assert isinstance(current, int)
+        assert isinstance(current, long)
         assert isinstance(dayItemses, list)
         assert isinstance(playFrom, unicode)
         assert isinstance(prizes, list)
@@ -310,6 +327,14 @@ class GameDailyBonus(object):
         self.dayItemses = dayItemses
         self.playFrom = playFrom
         self.prizes = prizes
+
+
+class GameDig(GameAction):
+    def __init__(self, objId):  # @ReservedAssignment
+        assert isinstance(objId, long)
+        self.action = 'dig'
+        self.objId = objId
+        self.type = 'item'
 
 
 class GameEVTCommand(object):
@@ -328,7 +353,7 @@ class GameGameSettings(object):
                  music):
         assert isinstance(music, bool)
         assert isinstance(sound, bool)
-        assert isinstance(tutorialState, int)
+        assert isinstance(tutorialState, long)
         self.music = music
         self.sound = sound
         self.tutorialState = tutorialState
@@ -361,7 +386,7 @@ class GameGameStateEvent(GameAction):
         assert isinstance(locationInfos, list)
         assert isinstance(playerSettings, GamePlayerSettings)
         assert isinstance(playerStatus, unicode)
-        assert isinstance(treasureRehide, int)
+        assert isinstance(treasureRehide, long)
         assert isinstance(wishlist, list)
         self.action = 'gameState'
         self.haveAttempts = haveAttempts
@@ -394,7 +419,7 @@ class GameGetMissionsEvent(GameAction):
 
 class GameGift(object):
     def __init__(self, id):  # @ReservedAssignment
-        assert isinstance(id, int)
+        assert isinstance(id, long)
         self.id = id
 
 
@@ -404,7 +429,7 @@ class GameGuestInfo(object):
                  playerSettings):
         assert isinstance(playerSettings, GamePlayerSettings)
         assert isinstance(userId, unicode)
-        assert isinstance(visitingTime, int)
+        assert isinstance(visitingTime, long)
         self.playerSettings = playerSettings
         self.userId = userId
         self.visitingTime = visitingTime
@@ -423,8 +448,8 @@ class GameInfo(object):
         assert isinstance(country, unicode)
         assert isinstance(first_name, unicode)
         assert isinstance(last_name, unicode)
-        assert isinstance(sex, int)
-        assert isinstance(uid, int)
+        assert isinstance(sex, long)
+        assert isinstance(uid, long)
         self.bdate = bdate
         self.city = city
         self.country = country
@@ -447,10 +472,10 @@ class GameLocation(GameItem):
                  id):  # @ReservedAssignment
         assert isinstance(gameObjects, list)
         assert isinstance(guestInfos, list)
-        assert isinstance(height, int)
+        assert isinstance(height, long)
         assert isinstance(id, unicode)
         assert isinstance(openedAreas, list)
-        assert isinstance(width, int)
+        assert isinstance(width, long)
         self.gameObjects = gameObjects
         self.guestInfos = guestInfos
         self.height = height
@@ -466,10 +491,10 @@ class GameLocationInfo(object):
                  locationId,
                  maxGameObjectId,
                  giftCoins):
-        assert isinstance(giftCoins, int)
+        assert isinstance(giftCoins, long)
         assert isinstance(locationId, unicode)
-        assert isinstance(maxGameObjectId, int)
-        assert isinstance(occupiedBrainsCount, int)
+        assert isinstance(maxGameObjectId, long)
+        assert isinstance(occupiedBrainsCount, long)
         assert isinstance(openedAreas, list)
         self.giftCoins = giftCoins
         self.locationId = locationId
@@ -482,7 +507,7 @@ class GameMagic(object):
     def __init__(self, expire,
                  used):
         assert isinstance(expire, unicode)
-        assert isinstance(used, int)
+        assert isinstance(used, long)
         self.expire = expire
         self.used = used
 
@@ -502,7 +527,7 @@ class GameNextPlayTimes(object):
 
 class GameNpcs(object):
     def __init__(self, npcClientId):
-        assert isinstance(npcClientId, int)
+        assert isinstance(npcClientId, long)
         self.npcClientId = npcClientId
 
 
@@ -510,9 +535,17 @@ class GameParams(object):
     def __init__(self, magicLimit,
                  event):
         assert isinstance(event, GameGameStateEvent)
-        assert isinstance(magicLimit, int)
+        assert isinstance(magicLimit, long)
         self.event = event
         self.magicLimit = magicLimit
+
+
+class GamePick(GameAction):
+    def __init__(self, objId):  # @ReservedAssignment
+        assert isinstance(objId, long)
+        self.action = 'pick'
+        self.objId = objId
+        self.type = 'item'
 
 
 class GamePlayerSettings(object):
@@ -529,9 +562,23 @@ class GamePlayerSettings(object):
 
 class GamePrize(GameItem):
     def __init__(self, count):
-        assert isinstance(count, int)
+        assert isinstance(count, long)
         self.count = count
         self.item = '@CR_07'
+
+
+class GameRemoteNewYearEvent(GameAction):
+    def __init__(self, itemId,  # @ReservedAssignment
+                 objId,  # @ReservedAssignment
+                 id):  # @ReservedAssignment
+        assert isinstance(id, long)
+        assert isinstance(itemId, unicode)
+        assert isinstance(objId, long)
+        self.action = 'remoteNewYear'
+        self.id = id
+        self.itemId = itemId
+        self.objId = objId
+        self.type = 'item'
 
 
 class GameSTARTCommand(object):
@@ -589,34 +636,34 @@ class GameState(object):
                  registerDate,
                  remoteThanksgiving,
                  shopOpened):
-        assert isinstance(brainsCount, int)
+        assert isinstance(brainsCount, long)
         assert isinstance(buffs, GameBuffs)
         assert isinstance(burySlots, list)
         assert isinstance(buyedBrains, list)
         assert isinstance(buyedClothing, list)
-        assert isinstance(cashMoney, int)
-        assert isinstance(cashMoneyReal, int)
+        assert isinstance(cashMoney, long)
+        assert isinstance(cashMoneyReal, long)
         assert isinstance(collectionItems, GameCollectionItems)
         assert isinstance(dailyBonus, GameDailyBonus)
         assert isinstance(definedBonuses, list)
-        assert isinstance(experience, int)
+        assert isinstance(experience, long)
         assert isinstance(freeGiftUsers, list)
-        assert isinstance(gameMoney, int)
-        assert isinstance(gameMoneyReal, int)
+        assert isinstance(gameMoney, long)
+        assert isinstance(gameMoneyReal, long)
         assert isinstance(gameSettings, GameGameSettings)
-        assert isinstance(giftId, int)
+        assert isinstance(giftId, long)
         assert isinstance(gifts, list)
-        assert isinstance(level, int)
+        assert isinstance(level, long)
         assert isinstance(magic, GameMagic)
         assert isinstance(mailBonus, GameMailBonus)
         assert isinstance(npcs, GameNpcs)
         assert isinstance(playerSettings, GamePlayerSettings)
         assert isinstance(playerStatus, unicode)
-        assert isinstance(receivedGiftsCoins, int)
+        assert isinstance(receivedGiftsCoins, long)
         assert isinstance(receivedGiftsExpire, unicode)
         assert isinstance(registerDate, unicode)
         assert isinstance(remoteFertilizeFruitTree, list)
-        assert isinstance(remoteFertilizeFruitTreeCount, int)
+        assert isinstance(remoteFertilizeFruitTreeCount, long)
         assert isinstance(remoteNewYear, list)
         assert isinstance(remoteNewYearExpire, unicode)
         assert isinstance(remoteThanksgiving, list)
@@ -626,7 +673,7 @@ class GameState(object):
         assert isinstance(shopOpened, list)
         assert isinstance(storageGameObjects, list)
         assert isinstance(storageItems, list)
-        assert isinstance(treasureCount, int)
+        assert isinstance(treasureCount, long)
         assert isinstance(treasureExpire, unicode)
         assert isinstance(treasureHide, unicode)
         assert isinstance(wishlist, list)
@@ -675,21 +722,21 @@ class GameState(object):
 
 class GameStorageGameObject(GameItem):
     def __init__(self, count):
-        assert isinstance(count, int)
+        assert isinstance(count, long)
         self.count = count
         self.item = '@SC_WOOD_GRAVE2'
 
 
 class GameStorageItem(GameItem):
     def __init__(self, count):
-        assert isinstance(count, int)
+        assert isinstance(count, long)
         self.count = count
         self.item = '@METAL_SCRAP'
 
 
 class GameTarget(object):
     def __init__(self, id):  # @ReservedAssignment
-        assert isinstance(id, int)
+        assert isinstance(id, long)
         self.id = id
 
 
@@ -712,7 +759,7 @@ class GameType(object):
 class GameUpgradeBuilding(GameType):
     def __init__(self, count,  # @ReservedAssignment
                  finished):  # @ReservedAssignment
-        assert isinstance(count, int)
+        assert isinstance(count, long)
         assert isinstance(finished, bool)
         self.count = count
         self.finished = finished
@@ -727,13 +774,13 @@ class GameWoodGrave(GameType):
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment
                  id):  # @ReservedAssignment
-        assert isinstance(doneCounter, int)
-        assert isinstance(id, int)
+        assert isinstance(doneCounter, long)
+        assert isinstance(id, long)
         assert isinstance(materials, list)
-        assert isinstance(startCounter, int)
+        assert isinstance(startCounter, long)
         assert isinstance(target, NoneType)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.doneCounter = doneCounter
         self.id = id
         self.item = '@SC_WOOD_GRAVE'
@@ -752,10 +799,10 @@ class GameWoodTree(GameType):
                  x,  # @ReservedAssignment
                  id):  # @ReservedAssignment
         assert isinstance(gainStarted, bool)
-        assert isinstance(id, int)
-        assert isinstance(materialCount, int)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(id, long)
+        assert isinstance(materialCount, long)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.gainStarted = gainStarted
         self.id = id
         self.item = '@SC_OAK6'
@@ -768,7 +815,7 @@ class GameWoodTree(GameType):
 class GameZombieWork(GameType):
     def __init__(self, count,  # @ReservedAssignment
                  finished):  # @ReservedAssignment
-        assert isinstance(count, int)
+        assert isinstance(count, long)
         assert isinstance(finished, bool)
         self.count = count
         self.finished = finished
@@ -779,9 +826,9 @@ class GameBase(GameType):
     def __init__(self, y,  # @ReservedAssignment
                  id,  # @ReservedAssignment
                  x):  # @ReservedAssignment
-        assert isinstance(id, int)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(id, long)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.id = id
         self.item = '@D_FENCE1'
         self.type = 'base'
@@ -795,11 +842,11 @@ class GameBridge(GameType):
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment
                  id):  # @ReservedAssignment
-        assert isinstance(id, int)
-        assert isinstance(level, int)
+        assert isinstance(id, long)
+        assert isinstance(level, long)
         assert isinstance(nextPlayTimes, GameNextPlayTimes)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.id = id
         self.item = '@B_BRIDGE'
         self.level = level
@@ -815,11 +862,11 @@ class GameBuilding(GameType):
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment
                  id):  # @ReservedAssignment
-        assert isinstance(id, int)
-        assert isinstance(level, int)
+        assert isinstance(id, long)
+        assert isinstance(level, long)
         assert isinstance(nextPlayTimes, GameNextPlayTimes)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.id = id
         self.item = '@B_FLAG_EMERALD'
         self.level = level
@@ -838,14 +885,14 @@ class GameCookGraveWithBrains(GameType):
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment
                  pendingRecipes):  # @ReservedAssignment
-        assert isinstance(id, int)
+        assert isinstance(id, long)
         assert isinstance(isUp, bool)
         assert isinstance(materials, list)
         assert isinstance(pendingRecipes, list)
-        assert isinstance(recipeNo, int)
+        assert isinstance(recipeNo, long)
         assert isinstance(speeduped, bool)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.id = id
         self.isUp = isUp
         self.item = '@SC_COOK_GRAVE_BRAINER'
@@ -861,7 +908,7 @@ class GameCookGraveWithBrains(GameType):
 class GameCountedItem(GameType):
     def __init__(self, count,  # @ReservedAssignment
                  finished):  # @ReservedAssignment
-        assert isinstance(count, int)
+        assert isinstance(count, long)
         assert isinstance(finished, bool)
         self.count = count
         self.finished = finished
@@ -873,10 +920,10 @@ class GameDecoration(GameType):
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment
                  id):  # @ReservedAssignment
-        assert isinstance(id, int)
+        assert isinstance(id, long)
         assert isinstance(placeTime, unicode)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.id = id
         self.item = '@D_UMBRELLA2_2'
         self.placeTime = placeTime
@@ -912,11 +959,11 @@ class GameHalloweenTower(GameType):
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment
                  id):  # @ReservedAssignment
-        assert isinstance(id, int)
-        assert isinstance(level, int)
+        assert isinstance(id, long)
+        assert isinstance(level, long)
         assert isinstance(users, list)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.id = id
         self.item = '@B_HALLOWEEN'
         self.level = level
@@ -939,9 +986,9 @@ class GameNEW_YEAR(GameType):
                  user,  # @ReservedAssignment
                  msg,  # @ReservedAssignment
                  id):  # @ReservedAssignment
-        assert isinstance(count, int)
+        assert isinstance(count, long)
         assert isinstance(free, bool)
-        assert isinstance(id, int)
+        assert isinstance(id, long)
         assert isinstance(msg, unicode)
         assert isinstance(user, unicode)
         self.count = count
@@ -958,10 +1005,10 @@ class GamePickup(GameType):
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment
                  id):  # @ReservedAssignment
-        assert isinstance(id, int)
-        assert isinstance(parentId, int)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(id, long)
+        assert isinstance(parentId, long)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.id = id
         self.item = '@SC_PICKUP_BOX_CAR'
         self.parentId = parentId
@@ -976,11 +1023,11 @@ class GamePier(GameType):
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment
                  id):  # @ReservedAssignment
-        assert isinstance(id, int)
-        assert isinstance(level, int)
+        assert isinstance(id, long)
+        assert isinstance(level, long)
         assert isinstance(nextPlayTimes, GameNextPlayTimes)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.id = id
         self.item = '@B_PEAR2'
         self.level = level
@@ -998,11 +1045,11 @@ class GamePlant(GameType):
                  x,  # @ReservedAssignment
                  id):  # @ReservedAssignment
         assert isinstance(fertilized, bool)
-        assert isinstance(id, int)
+        assert isinstance(id, long)
         assert isinstance(jobFinishTime, unicode)
         assert isinstance(jobStartTime, unicode)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.fertilized = fertilized
         self.id = id
         self.item = '@P_07'
@@ -1020,10 +1067,10 @@ class GameSTART(GameType):
                  serverTime,  # @ReservedAssignment
                  clientTime):  # @ReservedAssignment
         assert isinstance(ad, unicode)
-        assert isinstance(clientTime, int)
+        assert isinstance(clientTime, long)
         assert isinstance(info, GameInfo)
         assert isinstance(lang, unicode)
-        assert isinstance(serverTime, int)
+        assert isinstance(serverTime, long)
         self.ad = ad
         self.clientTime = clientTime
         self.info = info
@@ -1036,9 +1083,9 @@ class GameSlag(GameType):
     def __init__(self, y,  # @ReservedAssignment
                  id,  # @ReservedAssignment
                  x):  # @ReservedAssignment
-        assert isinstance(id, int)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(id, long)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.id = id
         self.item = '@SLAG'
         self.type = 'Slag'
@@ -1074,10 +1121,10 @@ class GameStone(GameType):
                  x,  # @ReservedAssignment
                  id):  # @ReservedAssignment
         assert isinstance(gainStarted, bool)
-        assert isinstance(id, int)
-        assert isinstance(materialCount, int)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(id, long)
+        assert isinstance(materialCount, long)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.gainStarted = gainStarted
         self.id = id
         self.item = '@SC_STONE23'
@@ -1095,13 +1142,13 @@ class GameStoneGrave(GameType):
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment
                  id):  # @ReservedAssignment
-        assert isinstance(doneCounter, int)
-        assert isinstance(id, int)
+        assert isinstance(doneCounter, long)
+        assert isinstance(id, long)
         assert isinstance(materials, list)
-        assert isinstance(startCounter, int)
+        assert isinstance(startCounter, long)
         assert isinstance(target, NoneType)
-        assert isinstance(x, int)
-        assert isinstance(y, int)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
         self.doneCounter = doneCounter
         self.id = id
         self.item = '@SC_STONE_GRAVE'

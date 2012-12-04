@@ -7,7 +7,9 @@ import logging
 import time
 from game_state.game_event import dict2obj, obj2dict, GameItemReader
 from game_state.game_types import GameEVT, GameTIME, GameSTART,\
-    GameApplyGiftEvent, GameGift, GameInfo
+    GameApplyGiftEvent, GameGift, GameInfo, GameDig, GameSlag, \
+    GamePlant, GamePick, GameBuy
+import pprint
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +27,7 @@ class Game():
         self.__itemReader.read('items.txt')
         self.__events_to_handle = []
         self.__receive_gifts_with_messages = False
-        self.__receive_only_free_gifts = True
+        self.__receive_non_free_gifts = False
 
     def start(self):
         # load items dictionary
@@ -39,6 +41,10 @@ class Game():
         start_response = self.startGame(server_time, session_key)
         # TODO parse game state
         self.__game_state = start_response.state
+        self.__game_location = start_response.params.event.location
+        for gameObject in self.__game_location.gameObjects:
+            #if gameObject.type != 'base':
+                logger.info(obj2dict(gameObject))
 
         # TODO send getMissions
         # TODO handle getMissions response
@@ -55,49 +61,96 @@ class Game():
             self.sendGameEvents()
             if len(self.__events_to_handle) > 0:
                 logger.info("received events: " + str(self.__events_to_handle))
-            for event in self.__events_to_handle:
+            for event in list(self.__events_to_handle):
                 self.handleEvent(event)
             self.automaticActions()
             time.sleep(30)
 
     def automaticActions(self):
         self.receiveAllGifts()
+        self.digAll()
+
+    def digAll(self):
+        plants = self.getAllObjectsByType(GamePlant(False, u"", u"", 0L, 0L, 0L).type)
+        for plant in list(plants):
+            if int(plant.jobFinishTime) < 0:
+                item = self.__itemReader.get(plant.item)
+                logger.info(u"Собираем '" + item.name + "' " + str(plant.id) +
+                            u" по координатам (" +
+                            str(plant.x) + u", " + str(plant.y) + u")")
+                pick_event = GamePick(plant.id)
+                self.sendGameEvents([pick_event])
+                # convert plant to slag
+                plant.type = GameSlag(0L, 0L, 0L).type
+                plant.item = GameSlag(0L, 0L, 0L).item
+        slags = self.getAllObjectsByType(GameSlag(0L, 0L, 0L).type)
+        for slag in list(slags):
+            item = self.__itemReader.get(slag.item)
+            logger.info(u"Копаем '" + item.name + "' " + str(slag.id) +
+                        u" по координатам (" +
+                        str(slag.x) + ", " + str(slag.y) + u")")
+            dig_event = GameDig(slag.id)
+            self.sendGameEvents([dig_event])
+            # convert slag to ground
+            slag.type = 'base'
+            slag.item = '@GROUND'
+        grounds = self.getAllObjectsByType('ground')
+        for ground in list(grounds):
+            item = self.__itemReader.get(ground.item)
+            seed_item = self.__itemReader.get(u'P_14R')
+            logger.info(u"Сеем '" + seed_item.name + u" на " + item.name + u"' " +
+                        str(ground.id) +
+                        u" по координатам (" +
+                        str(ground.x) + u", " + str(ground.y) + u")")
+            buy_event = GameBuy(unicode(seed_item.id),
+                                ground.id,
+                                ground.y, ground.x)
+            self.sendGameEvents([buy_event])
+            ground.type = u'item'
+            ground.item = unicode(seed_item.id)
+
+    def getAllObjectsByType(self, object_type):
+        objects = []
+        for game_object in self.__game_location.gameObjects:
+            item = self.__itemReader.get(game_object.item)
+            if game_object.type == object_type or item.type == object_type:
+                objects.append(game_object)
+        return objects
 
     def receiveAllGifts(self):
         gifts = self.__game_state.gifts
         if len(gifts) > 0:
-            logger.info("receiving all gifts:")
-        for gift in gifts:
+            logger.info("receiving all gifts:" + str(len(gifts)))
+        for gift in list(gifts):
             self.receiveGift(gift)
 
     def receiveGift(self, gift):
-        item = dict2obj(self.__itemReader.get(gift.item))
+        item = self.__itemReader.get(gift.item)
         # logger.info(obj2dict(gift))
-        gift_name = "подарок '" + item.name + u"'"
-        if hasattr(gift, 'msg') and gift.msg != '':
-            gift_name += " с сообщением: '" + gift.msg + "'"
-            if not self.__receive_gifts_with_messages:
-                return
-        if hasattr(item, 'moved') and item.moved == True:
-            logger.info(gift_name + "' нужно поместить")
-            return
-        if hasattr(gift, 'free') and gift.free:
-            gift_name = 'бесплатный ' + gift_name
-        else:
-            if self.__receive_only_free_gifts:
-                return
-
-        logger.info(u"Принимаю " + gift_name +
-                    u" от " + gift.user)
-        apply_gift_event = GameApplyGiftEvent(gift=GameGift(id=gift.id))
-        self.sendGameEvents([apply_gift_event])
+        gift_name = u"подарок '" + item.name + u"'"
+        with_message = hasattr(gift, 'msg') and gift.msg != ''
+        moved = hasattr(item, 'moved') and item.moved == True
+        free = hasattr(gift, 'free') and gift.free
+        if with_message:
+            gift_name += u" с сообщением: '" + gift.msg + u"'"
+        if moved:
+            logger.info(gift_name + u"' нужно поместить")
+        if free:
+            gift_name = u'бесплатный ' + gift_name
+        gift_name += u" от " + gift.user
+        logger.info(u'Получен ' + gift_name)
+        if not moved:
+            if not with_message or self.__receive_gifts_with_messages:
+                if free or self.__receive_non_free_gifts:
+                    logger.info(u"Принимаю " + gift_name)
+                    apply_gift_event = GameApplyGiftEvent(GameGift(gift.id))
+                    self.sendGameEvents([apply_gift_event])
         self.removeGiftFromGameState(gift)
 
     def removeGiftFromGameState(self, gift):
-        for current_gift in self.__game_state.gifts:
+        for current_gift in list(self.__game_state.gifts):
             if gift.id == current_gift.id:
                 self.__game_state.gifts.remove(current_gift)
-                break
 
     def sendGameEvents(self, events=[]):
         '''
@@ -114,7 +167,13 @@ class Game():
             logger.info(u"Получен подарок.")
             gift = event_to_handle.gift
             self.receiveGift(gift)
-            self.__events_to_handle.remove(event_to_handle)
+        else:
+            self.logUnknownEvent(event_to_handle)
+        self.__events_to_handle.remove(event_to_handle)
+
+    def logUnknownEvent(self, event_to_handle):
+        logger = logging.getLogger('unknownEventLogger')
+        logger.info(pprint.pformat(obj2dict(event_to_handle)))
 
     def getTime(self):
         '''
@@ -140,8 +199,8 @@ class Game():
         info['city'] = my_city['name']
         game_info = GameInfo(city=info['city'], first_name=info['first_name'],
                  last_name=info['last_name'],
-                 uid=info['uid'], country=info['country'],
-                 sex=info['sex'], bdate=info['bdate'])
+                 uid=long(info['uid']), country=info['country'],
+                 sex=long(info['sex']), bdate=info['bdate'])
         return game_info
 
     def startGame(self, server_time, session_key):
@@ -157,10 +216,10 @@ class Game():
 
     def _getClientTime(self):
         random.seed()
-        return random.randrange(2800, 4000)
+        return long(random.randrange(2800, 4000))
 
     def _getClientVersion(self):
-        return 1352868088
+        return long(1352868088)
 
     def _setClientVersion(self, version):
         self.__session.CLIENT_VERSION = version

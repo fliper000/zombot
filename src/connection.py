@@ -1,3 +1,4 @@
+# encoding=utf-8
 import urllib
 import urllib2
 import StringIO
@@ -24,7 +25,7 @@ class Connection(object):
         if cookies is not None:
             opener.addheaders += [('Cookie', cookies)]
         if data is not None:
-            data = urllib.urlencode(data)
+            data = urllib.urlencode(self.encode_dict(data))
         logger.info('request: ' + self.__url + ' ' + str(data))
         response = opener.open(self.__url, data)
         encoding = response.headers.getparam('charset')
@@ -41,6 +42,10 @@ class Connection(object):
             return Cookie.SimpleCookie(response.info().get('Set-Cookie'))
         else:
             return content
+
+    def encode_dict(self, params):
+        return dict([(key, val.encode('utf-8')) for key, val in params.items()
+                     if isinstance(val, basestring)])
 
     def getHeaders(self):
         return {'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; '

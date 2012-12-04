@@ -10,6 +10,9 @@ def dict2obj(d, name=None):
                 name = name.rstrip('s')
             d = [dict2obj(x, name) for x in d]
         if not isinstance(d, dict):  # handle simple types
+            if not isinstance(d, bool):
+                if isinstance(d, int):   # use only long types
+                    d = long(d)          # (causes errors on android)
             return d
 
         # d is dict, handle complex type
@@ -53,7 +56,9 @@ def obj2dict(obj):
         d = [obj2dict(x) for x in obj]
     # handle simple types
     elif (isinstance(obj, str) or
+          isinstance(obj, bool) or
           isinstance(obj, int) or
+          isinstance(obj, long) or
           isinstance(obj, unicode) or
           isinstance(obj, NoneType)):
         d = obj
@@ -100,7 +105,7 @@ class GameItemReader():
 
     def get(self, item_id):
         item_id = str(item_id).lstrip('@')
-        return self.content_dict[item_id]
+        return dict2obj(self.content_dict[item_id])
 
     def read(self, filename):
         with open(filename) as f:

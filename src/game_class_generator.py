@@ -48,6 +48,7 @@ def generate_klasses(obj):
     if(isinstance(obj, str) or
        isinstance(obj, unicode) or
        isinstance(obj, int) or
+       isinstance(obj, long) or
        isinstance(obj, NoneType)):
         pass
     # handle list
