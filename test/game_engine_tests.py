@@ -3,6 +3,8 @@ import game_engine
 from mock import Mock, MagicMock
 import message_factory
 from message_factory import calcCRC
+from game_state.game_types import GameTIME, GameInfo, GameSTART
+from game_state.game_event import dict2obj
 
 
 class Test(unittest.TestCase):
@@ -19,7 +21,7 @@ class Test(unittest.TestCase):
         game.getTime()
 
         # verify
-        game.send.assert_called_once_with({"type": "TIME"})
+        game.send.assert_called_once_with(GameTIME())
 
     def testGetTimeShouldReturnKeyAndTime(self):
         BASE_REQUEST_ID = 49
@@ -47,9 +49,9 @@ class Test(unittest.TestCase):
         self.assertEqual(expected_key, actual_key)
 
     def testStartGameShouldCallSend(self):
-        CLIENT_TIME = 3162
-        USER_INFO = 'user_info'
-        SERVER_TIME = 1000000000
+        CLIENT_TIME = 3162L
+        USER_INFO = GameInfo(u'', u'', u'', 0L, u'', 0L, u'')
+        SERVER_TIME = 1000000000L
         SESSION_KEY = 'session_key'
         # setup
         connection = Mock()
@@ -64,12 +66,12 @@ class Test(unittest.TestCase):
         game.startGame(SERVER_TIME, SESSION_KEY)
 
         # verify
-        game.send.assert_called_once_with({"type": "START",
-                                           "clientTime": CLIENT_TIME,
-                                           "ad": "user_apps",
-                                           "lang": "en",
-                                           "serverTime": SERVER_TIME,
-                                           "info": USER_INFO})
+        game.send.assert_called_once_with(GameSTART(
+                                           clientTime=CLIENT_TIME,
+                                           ad=u"user_apps",
+                                           lang=u"en",
+                                           serverTime=SERVER_TIME,
+                                           info=USER_INFO))
         # should set session key
         self.assertEqual(SESSION_KEY, game._getSessionKey())
         # should set request id

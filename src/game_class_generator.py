@@ -72,16 +72,27 @@ def generate_klasses(obj):
         for key in obj.__dict__:
             klasses.update(generate_klasses(obj.__dict__[key]))
         for base in class_bases:
-            if base != 'object':
-                klasses[base] = klass(base, ['object'], {})
+            if base != 'CommonEqualityMixin':
+                klasses[base] = klass(base, ['CommonEqualityMixin'], {})
         klasses[class_name] = klass(class_name, class_bases,
                                     instance_attributes)
     return klasses
 
 
 def generate_classes(obj):
+    common_class = '''class CommonEqualityMixin(object):
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__)
+            and self.__dict__ == other.__dict__)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
+'''
     classes = generate_klasses(obj)
-    string = generate_class(classes.keys(), classes)
+    string = common_class + generate_class(classes.keys(), classes)
     return string
 
 
@@ -98,7 +109,8 @@ def print_order(class_names, classes, printed=[]):
     for klass_ in sorted(class_names):
         if(len(classes[klass_].bases) == 1 and
                 klass_ not in printed and
-                classes[klass_].bases[0] == 'object' or
+                (classes[klass_].bases[0] == 'CommonEqualityMixin' or
+                classes[klass_].bases[0] == 'object') or
                 classes[klass_].bases[0] in printed):
             ordered_class_names += [klass_]
             printed += [klass_]

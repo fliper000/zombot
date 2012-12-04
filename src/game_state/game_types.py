@@ -1,4 +1,14 @@
-class GameAction(object):
+class CommonEqualityMixin(object):
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__)
+            and self.__dict__ == other.__dict__)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
+class GameAction(CommonEqualityMixin):
     pass
 
 
@@ -30,13 +40,13 @@ class GameApplyGiftEvent(GameAction):
         self.type = 'gift'
 
 
-class GameBuffs(object):
+class GameBuffs(CommonEqualityMixin):
     def __init__(self, list):  # @ReservedAssignment
         assert isinstance(list, list)
         self.list = list
 
 
-class GameBurySlot(object):
+class GameBurySlot(CommonEqualityMixin):
     def __init__(self, enabled):
         assert isinstance(enabled, bool)
         self.enabled = enabled
@@ -59,7 +69,7 @@ class GameBuy(GameAction):
         self.y = y
 
 
-class GameCollectionItems(object):
+class GameCollectionItems(CommonEqualityMixin):
     def __init__(self, C_18_2,
                  C_4_3,
                  C_18_1,
@@ -314,7 +324,7 @@ class GameCollectionItems(object):
         self.C_9_4 = C_9_4
 
 
-class GameDailyBonus(object):
+class GameDailyBonus(CommonEqualityMixin):
     def __init__(self, dayItemses,
                  current,
                  playFrom,
@@ -337,7 +347,7 @@ class GameDig(GameAction):
         self.type = 'item'
 
 
-class GameEVTCommand(object):
+class GameEVTCommand(CommonEqualityMixin):
     def __init__(self, id,  # @ReservedAssignment
                  events):  # @ReservedAssignment
         assert isinstance(events, list)
@@ -347,7 +357,7 @@ class GameEVTCommand(object):
         self.id = id
 
 
-class GameGameSettings(object):
+class GameGameSettings(CommonEqualityMixin):
     def __init__(self, sound,
                  tutorialState,
                  music):
@@ -417,13 +427,13 @@ class GameGetMissionsEvent(GameAction):
         self.type = 'mission'
 
 
-class GameGift(object):
+class GameGift(CommonEqualityMixin):
     def __init__(self, id):  # @ReservedAssignment
         assert isinstance(id, long)
         self.id = id
 
 
-class GameGuestInfo(object):
+class GameGuestInfo(CommonEqualityMixin):
     def __init__(self, visitingTime,
                  userId,
                  playerSettings):
@@ -435,7 +445,7 @@ class GameGuestInfo(object):
         self.visitingTime = visitingTime
 
 
-class GameInfo(object):
+class GameInfo(CommonEqualityMixin):
     def __init__(self, city,
                  first_name,
                  last_name,
@@ -459,7 +469,7 @@ class GameInfo(object):
         self.uid = uid
 
 
-class GameItem(object):
+class GameItem(CommonEqualityMixin):
     pass
 
 
@@ -485,7 +495,7 @@ class GameLocation(GameItem):
         self.width = width
 
 
-class GameLocationInfo(object):
+class GameLocationInfo(CommonEqualityMixin):
     def __init__(self, openedAreas,
                  occupiedBrainsCount,
                  locationId,
@@ -503,7 +513,7 @@ class GameLocationInfo(object):
         self.openedAreas = openedAreas
 
 
-class GameMagic(object):
+class GameMagic(CommonEqualityMixin):
     def __init__(self, expire,
                  used):
         assert isinstance(expire, unicode)
@@ -512,7 +522,7 @@ class GameMagic(object):
         self.used = used
 
 
-class GameMailBonus(object):
+class GameMailBonus(CommonEqualityMixin):
     def __init__(self, bonuses,
                  acceptedBonuses):
         assert isinstance(acceptedBonuses, list)
@@ -521,17 +531,17 @@ class GameMailBonus(object):
         self.bonuses = bonuses
 
 
-class GameNextPlayTimes(object):
+class GameNextPlayTimes(CommonEqualityMixin):
     pass
 
 
-class GameNpcs(object):
+class GameNpcs(CommonEqualityMixin):
     def __init__(self, npcClientId):
         assert isinstance(npcClientId, long)
         self.npcClientId = npcClientId
 
 
-class GameParams(object):
+class GameParams(CommonEqualityMixin):
     def __init__(self, magicLimit,
                  event):
         assert isinstance(event, GameGameStateEvent)
@@ -548,7 +558,7 @@ class GamePick(GameAction):
         self.type = 'item'
 
 
-class GamePlayerSettings(object):
+class GamePlayerSettings(CommonEqualityMixin):
     def __init__(self, userName,
                  dressId,
                  hatId):
@@ -581,7 +591,7 @@ class GameRemoteNewYearEvent(GameAction):
         self.type = 'item'
 
 
-class GameSTARTCommand(object):
+class GameSTARTCommand(CommonEqualityMixin):
     def __init__(self, state,  # @ReservedAssignment
                  params,  # @ReservedAssignment
                  id):  # @ReservedAssignment
@@ -594,7 +604,7 @@ class GameSTARTCommand(object):
         self.state = state
 
 
-class GameState(object):
+class GameState(CommonEqualityMixin):
     def __init__(self, gameSettings,
                  cashMoneyReal,
                  definedBonuses,
@@ -734,13 +744,13 @@ class GameStorageItem(GameItem):
         self.item = '@METAL_SCRAP'
 
 
-class GameTarget(object):
+class GameTarget(CommonEqualityMixin):
     def __init__(self, id):  # @ReservedAssignment
         assert isinstance(id, long)
         self.id = id
 
 
-class GameTasks(object):
+class GameTasks(CommonEqualityMixin):
     def __init__(self, Q15_11_T2,
                  Q15_11_T3,
                  Q15_11_T1):
@@ -752,7 +762,7 @@ class GameTasks(object):
         self.Q15_11_T3 = Q15_11_T3
 
 
-class GameType(object):
+class GameType(CommonEqualityMixin):
     pass
 
 

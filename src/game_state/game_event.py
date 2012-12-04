@@ -42,7 +42,7 @@ def dict2obj(d, name=None):
             base_class_name = 'GameItem'
             base_class = type(base_class_name, (object,), {})
         else:
-            base_class = object
+            base_class = type('CommonEqualityMixin', (object,), {})
         constructor = type(str(class_name), (base_class,), {})
         o = constructor()
         for k in d:

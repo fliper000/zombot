@@ -86,4 +86,4 @@ class GameStateTest(unittest.TestCase):
         game_items.download('items.txt')
         game_items.read('items.txt')
         location = start_response.params.event.playerStatus
-        self.assertEqual(u"Зомби", (game_items.get(location)['name']))
+        self.assertEqual(u"Зомби", (game_items.get(location).name))
