@@ -1,11 +1,12 @@
 *.py[co]
+*.log
 
-# settings file
-settings.ini
+# settings files
+*.ini
 src/html
 zombiefarm.html
 items.txt
-game.json
+*.json
 
 # eclipse files
 .settings/org.eclipse.core.resources.prefs

@@ -8,7 +8,7 @@ import time
 from game_state.game_event import dict2obj, obj2dict, GameItemReader
 from game_state.game_types import GameEVT, GameTIME, GameSTART,\
     GameApplyGiftEvent, GameGift, GameInfo, GameDigItem, GameSlag, \
-    GamePlant, GamePickItem, GameBuyItem
+    GamePlant, GamePickItem, GameBuyItem, GamePickPickup
 import pprint
 
 logger = logging.getLogger(__name__)
@@ -69,6 +69,13 @@ class Game():
     def automaticActions(self):
         self.receiveAllGifts()
         self.digAll()
+
+    def pickPickups(self, pickups):
+        if pickups:
+            logger.info(u'Подбираем дроп...')
+        for pickup in pickups:
+            pick_event = GamePickPickup([pickup])
+            self.sendGameEvents([pick_event])
 
     def digAll(self):
         plants = self.getAllObjectsByType(GamePlant(False, u"", u"", 0L, 0L, 0L).type)
@@ -167,6 +174,9 @@ class Game():
             logger.info(u"Получен подарок.")
             gift = event_to_handle.gift
             self.receiveGift(gift)
+        elif event_to_handle.action == 'add':
+            if event_to_handle.type == 'pickup':
+                self.pickPickups(event_to_handle.pickups)
         else:
             self.logUnknownEvent(event_to_handle)
         self.__events_to_handle.remove(event_to_handle)

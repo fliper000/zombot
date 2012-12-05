@@ -80,14 +80,7 @@ def generate_klasses(obj):
 
 
 def generate_classes(obj):
-    common_class = '''class CommonEqualityMixin(object):
-
-    def __eq__(self, other):
-        return (isinstance(other, self.__class__)
-            and self.__dict__ == other.__dict__)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    common_class = '''from mixins import CommonEqualityMixin
 
 
 '''

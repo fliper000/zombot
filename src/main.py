@@ -4,7 +4,8 @@ from settings import Settings
 import vkutils
 import logging
 
-if __name__ == '__main__':
+
+def run_game():
     logging.basicConfig(level=logging.INFO)
     connection_logger = logging.getLogger('connection')
     connection_logger.propagate = False
@@ -19,3 +20,7 @@ if __name__ == '__main__':
     access_token = params['access_token']
     connection = Connection('http://java.shadowlands.ru/zombievk/go')
     Game(connection, user_id, auth_key, access_token).start()
+
+
+if __name__ == '__main__':
+    run_game()

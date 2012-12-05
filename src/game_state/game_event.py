@@ -2,6 +2,7 @@ import json
 from connection import Connection
 import logging
 from types import NoneType
+from game_state.mixins import CommonEqualityMixin
 
 
 def dict2obj(d, name=None):
@@ -43,7 +44,7 @@ def dict2obj(d, name=None):
             base_class_name = 'GameItem'
             base_class = type(base_class_name, (object,), {})
         else:
-            base_class = type('CommonEqualityMixin', (object,), {})
+            base_class = CommonEqualityMixin
         constructor = type(str(class_name), (base_class,), {})
         o = constructor()
         for k in d:

@@ -87,3 +87,10 @@ class GameStateTest(unittest.TestCase):
         game_items.read('items.txt')
         location = start_response.params.event.playerStatus
         self.assertEqual(u"Зомби", (game_items.get(location).name))
+
+    def testDictToObjMixin(self):
+        myObject = dict2obj({'attribute': ''}, 'MyObject')
+
+        # exercise & verify
+        self.assertEqual("GameMyObject: {'attribute': ''}",
+                         repr(myObject))

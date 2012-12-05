@@ -1,15 +1,16 @@
-class CommonEqualityMixin(object):
-
-    def __eq__(self, other):
-        return (isinstance(other, self.__class__)
-            and self.__dict__ == other.__dict__)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+from mixins import CommonEqualityMixin
 
 
 class GameAction(CommonEqualityMixin):
     pass
+
+
+class GameAddPickup(GameAction):
+    def __init__(self, pickups):  # @ReservedAssignment
+        assert isinstance(pickups, list)
+        self.action = 'add'
+        self.pickups = pickups
+        self.type = 'pickup'
 
 
 class GameApplyCompGiftItem(GameAction):
@@ -531,6 +532,14 @@ class GameMailBonus(CommonEqualityMixin):
         self.bonuses = bonuses
 
 
+class GameMoveToStorageItem(GameAction):
+    def __init__(self, objId):  # @ReservedAssignment
+        assert isinstance(objId, long)
+        self.action = 'moveToStorage'
+        self.objId = objId
+        self.type = 'item'
+
+
 class GameNextPlayTimes(CommonEqualityMixin):
     pass
 
@@ -830,6 +839,19 @@ class GameWoodTree(GameType):
         self.y = y
 
 
+class GameXp(GameType):
+    def __init__(self, count,  # @ReservedAssignment
+                 x,  # @ReservedAssignment
+                 y):  # @ReservedAssignment
+        assert isinstance(count, long)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.count = count
+        self.type = 'xp'
+        self.x = x
+        self.y = y
+
+
 class GameZombieWork(GameType):
     def __init__(self, count,  # @ReservedAssignment
                  finished):  # @ReservedAssignment
@@ -895,14 +917,33 @@ class GameBuilding(GameType):
 
 
 class GameCoins(GameType):
-    def __init__(self, y,  # @ReservedAssignment
-                 count,  # @ReservedAssignment
-                 x):  # @ReservedAssignment
+    def __init__(self, count,  # @ReservedAssignment
+                 x,  # @ReservedAssignment
+                 y):  # @ReservedAssignment
         assert isinstance(count, long)
         assert isinstance(x, long)
         assert isinstance(y, long)
         self.count = count
         self.type = 'coins'
+        self.x = x
+        self.y = y
+
+
+class GameCollection(GameType):
+    def __init__(self, count,  # @ReservedAssignment
+                 img,  # @ReservedAssignment
+                 y,  # @ReservedAssignment
+                 x,  # @ReservedAssignment
+                 id):  # @ReservedAssignment
+        assert isinstance(count, long)
+        assert isinstance(id, unicode)
+        assert isinstance(img, unicode)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.count = count
+        self.id = id
+        self.img = img
+        self.type = 'collection'
         self.x = x
         self.y = y
 
