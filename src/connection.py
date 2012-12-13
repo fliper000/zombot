@@ -5,6 +5,7 @@ import StringIO
 import gzip
 import Cookie
 import logging
+import time
 
 logger = logging.getLogger('connection')
 
@@ -19,15 +20,43 @@ class Connection(object):
         '''
         self.__url = new_url
 
-    def sendRequest(self, data=None, cookies=None, getCookies=False):
+    def getChangedDocument(self, last_client_time=None, data=None):
+        modified_header = None
+        if last_client_time:
+            time_format = '%a, %d %b %Y %H:%M:%S %Z'
+            last_client_time = time.strftime(time_format, last_client_time)
+            modified_headers = [('If-Modified-Since', last_client_time)]
+        response = self.__getResponse(data, modified_headers)
+        if response.getcode() != 304:
+            logger.info('document modified, downloading...')
+            return self.__readContent(response)
+        else:
+            return None
+
+    def __getResponse(self, data, cookies=None, headers=None):
         opener = urllib2.build_opener()
         opener.addheaders = self.getHeaders().items()
+        if headers is not None:
+            opener.addheaders += headers
         if cookies is not None:
             opener.addheaders += [('Cookie', cookies)]
         if data is not None:
             data = urllib.urlencode(self.encode_dict(data))
         logger.info('request: ' + self.__url + ' ' + str(data))
         response = opener.open(self.__url, data)
+        return response
+
+    def sendRequest(self, data=None, cookies=None, getCookies=False):
+        response = self.__getResponse(data, cookies)
+        content = self.__readContent(response)
+        response.close()
+        logger.info('response: ' + content)
+        if getCookies:
+            return Cookie.SimpleCookie(response.info().get('Set-Cookie'))
+        else:
+            return content
+
+    def __readContent(self, response):
         encoding = response.headers.getparam('charset')
         if response.info().get('Content-Encoding') == 'gzip':
             buf = StringIO.StringIO(response.read())
@@ -36,12 +65,7 @@ class Connection(object):
         else:
             content = response.read()
         content = content.decode(encoding)
-        opener.close()
-        logger.info('response: ' + content)
-        if getCookies:
-            return Cookie.SimpleCookie(response.info().get('Set-Cookie'))
-        else:
-            return content
+        return content
 
     def encode_dict(self, params):
         return dict([(key, val.encode('utf-8')) for key, val in params.items()

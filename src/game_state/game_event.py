@@ -3,7 +3,8 @@ from connection import Connection
 import logging
 from types import NoneType
 from game_state.mixins import CommonEqualityMixin
-
+import time
+import os
 
 def dict2obj(d, name=None):
         if isinstance(d, list):  # handle list
@@ -120,6 +121,8 @@ class GameItemReader():
 
     def download(self, filename):
         url = 'http://java.shadowlands.ru/zombievk/items'
-        data = Connection(url).sendRequest({'lang': 'ru'})
+        last_modified_time = time.localtime(os.path.getmtime(filename))
+        data = Connection(url).getChangedDocument(data={'lang': 'ru'},
+                                                  last_client_time=last_modified_time)
         with open(filename, 'w') as f:
             f.write(data.encode('utf-8'))

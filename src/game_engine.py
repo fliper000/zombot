@@ -24,6 +24,7 @@ class Game():
                                  )
         self._createFactory()
         self.__itemReader = GameItemReader()
+        self.__itemReader.download('items.txt')
         self.__itemReader.read('items.txt')
         self.__events_to_handle = []
         self.__receive_gifts_with_messages = False
