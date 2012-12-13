@@ -4,8 +4,7 @@ from settings import Settings
 import vkutils
 import logging
 
-
-def run_game():
+def setup_logging():
     logging.basicConfig(level=logging.INFO)
     connection_logger = logging.getLogger('connection')
     connection_logger.propagate = False
@@ -13,11 +12,18 @@ def run_game():
     unknownEventLogger = logging.getLogger('unknownEventLogger')
     unknownEventLogger.propagate = False
     unknownEventLogger.addHandler(logging.FileHandler('unknown_events.log'))
+
+def read_params():
     settings = Settings()
     params = vkutils.VK(settings).getAppParams('612925')
     user_id = params['viewer_id']
     auth_key = params['auth_key']
     access_token = params['access_token']
+    return (user_id, auth_key, access_token)
+
+def run_game():
+    setup_logging()
+    (user_id, auth_key, access_token) = read_params()
     connection = Connection('http://java.shadowlands.ru/zombievk/go')
     Game(connection, user_id, auth_key, access_token).start()
 
