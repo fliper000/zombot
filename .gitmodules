@@ -4,3 +4,6 @@
 [submodule "lib/pybuilder"]
 	path = lib/pybuilder
 	url = git://github.com/pybuilder/pybuilder.git
+[submodule "vkontakte"]
+	path = vkontakte
+	url = git://github.com/Vanuan/vkontakte.git
