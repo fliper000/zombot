@@ -21,7 +21,7 @@ class Connection(object):
         self.__url = new_url
 
     def getChangedDocument(self, last_client_time=None, data=None):
-        modified_header = None
+        modified_headers = None
         if last_client_time:
             time_format = '%a, %d %b %Y %H:%M:%S %Z'
             last_client_time = time.strftime(time_format, last_client_time)
