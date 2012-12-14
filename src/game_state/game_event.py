@@ -6,6 +6,11 @@ from game_state.mixins import CommonEqualityMixin
 import time
 import os
 
+
+def is_ascii(s):
+    return all(ord(c) < 128 for c in s)
+
+
 def dict2obj(d, name=None):
         if isinstance(d, list):  # handle list
             if name:
@@ -19,7 +24,7 @@ def dict2obj(d, name=None):
 
         class_name = ''
         # d is dict, handle complex type
-        if 'action' in d:
+        if 'action' in d and is_ascii(d['action']):
             class_name = d['action']
         if 'type' in d and not class_name.upper().endswith((d['type'].upper())):
             class_name += d['type'][0].upper() + d['type'][1:]
