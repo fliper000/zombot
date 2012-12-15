@@ -8,7 +8,7 @@ import time
 from game_state.game_event import dict2obj, obj2dict, GameItemReader
 from game_state.game_types import GameEVT, GameTIME, GameSTART,\
     GameApplyGiftEvent, GameGift, GameInfo, GameDigItem, GameSlag, \
-    GamePlant, GamePickItem, GameBuyItem, GamePickPickup
+    GamePlant, GamePickItem, GameBuyItem, GamePickPickup, GameFruitTree
 import pprint
 
 logger = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ class Game():
 
     def automaticActions(self):
         self.receiveAllGifts()
-        self.digAll()
+        self.harvestAndDigAll()
 
     def pickPickups(self, pickups):
         if pickups:
@@ -78,19 +78,37 @@ class Game():
             pick_event = GamePickPickup([pickup])
             self.sendGameEvents([pick_event])
 
-    def digAll(self):
-        plants = self.getAllObjectsByType(GamePlant(False, u"", u"", 0L, 0L, 0L).type)
-        for plant in list(plants):
-            if int(plant.jobFinishTime) < 0:
-                item = self.__itemReader.get(plant.item)
-                logger.info(u"Собираем '" + item.name + "' " + str(plant.id) +
-                            u" по координатам (" +
-                            str(plant.x) + u", " + str(plant.y) + u")")
-                pick_event = GamePickItem(plant.id)
-                self.sendGameEvents([pick_event])
+    def pickHarvest(self, harvestItem):
+        if int(harvestItem.jobFinishTime) < 0:
+            item = self.__itemReader.get(harvestItem.item)
+            logger.info(u"Собираем '" + item.name + "' " +
+                        str(harvestItem.id) +
+                        u" по координатам (" +
+                        str(harvestItem.x) + u", " + str(harvestItem.y) + u")")
+            pick_event = GamePickItem(harvestItem.id)
+            self.sendGameEvents([pick_event])
+            if harvestItem.type == GamePlant(False, u"", u"", 0L, 0L, 0L).type:
                 # convert plant to slag
-                plant.type = GameSlag(0L, 0L, 0L).type
-                plant.item = GameSlag(0L, 0L, 0L).item
+                harvestItem.type = GameSlag(0L, 0L, 0L).type
+                harvestItem.item = GameSlag(0L, 0L, 0L).item
+            elif harvestItem.type == GameFruitTree(0L, False,
+                                                       u"", u"", 0L,
+                                                       0L, 0L).type:
+                harvestItem.fruitingCount -= 1
+                if harvestItem.fruitingCount == 0:
+                    # convert tree to pick item
+                    harvestItem.type = GamePickItem(0).type
+
+    def harvestAndDigAll(self):
+        plants = self.getAllObjectsByType(GamePlant(False, u"", u"",
+                                                    0L, 0L, 0L).type)
+        trees = self.getAllObjectsByType(GameFruitTree(0L, False,
+                                                       u"", u"", 0L,
+                                                       0L, 0L).type)
+        harvestItems = plants + trees
+        for harvestItem in list(harvestItems):
+            self.pickHarvest(harvestItem)
+
         slags = self.getAllObjectsByType(GameSlag(0L, 0L, 0L).type)
         for slag in list(slags):
             item = self.__itemReader.get(slag.item)
