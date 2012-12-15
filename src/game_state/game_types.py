@@ -587,6 +587,13 @@ class GamePlayerSettings(CommonEqualityMixin):
         self.userName = userName
 
 
+class GamePresent(GameItem):
+    def __init__(self, count):
+        assert isinstance(count, long)
+        self.count = count
+        self.item = '@CR_112'
+
+
 class GamePrize(GameItem):
     def __init__(self, count):
         assert isinstance(count, long)
@@ -793,6 +800,15 @@ class GameUpgradeBuilding(GameType):
         self.type = 'upgradeBuilding'
 
 
+class GameUser(CommonEqualityMixin):
+    def __init__(self, id,  # @ReservedAssignment
+                 present):  # @ReservedAssignment
+        assert isinstance(id, unicode)
+        assert isinstance(present, GamePresent)
+        self.id = id
+        self.present = present
+
+
 class GameWoodGrave(GameType):
     def __init__(self, target,  # @ReservedAssignment
                  startCounter,  # @ReservedAssignment
@@ -860,6 +876,26 @@ class GameZombieWork(GameType):
         self.count = count
         self.finished = finished
         self.type = 'zombieWork'
+
+
+class GameADMIN(GameType):
+    def __init__(self, count,  # @ReservedAssignment
+                 free,  # @ReservedAssignment
+                 user,  # @ReservedAssignment
+                 msg,  # @ReservedAssignment
+                 id):  # @ReservedAssignment
+        assert isinstance(count, long)
+        assert isinstance(free, bool)
+        assert isinstance(id, long)
+        assert isinstance(msg, unicode)
+        assert isinstance(user, unicode)
+        self.count = count
+        self.free = free
+        self.id = id
+        self.item = '@BELL'
+        self.msg = msg
+        self.type = 'ADMIN'
+        self.user = user
 
 
 class GameBase(GameType):
@@ -948,6 +984,41 @@ class GameCollection(GameType):
         self.y = y
 
 
+class GameCookGrave(GameType):
+    def __init__(self, jobEndTime,  # @ReservedAssignment
+                 speeduped,  # @ReservedAssignment
+                 id,  # @ReservedAssignment
+                 materials,  # @ReservedAssignment
+                 isUp,  # @ReservedAssignment
+                 recipeNo,  # @ReservedAssignment
+                 y,  # @ReservedAssignment
+                 x,  # @ReservedAssignment
+                 pendingRecipes,  # @ReservedAssignment
+                 currentRecipe):  # @ReservedAssignment
+        assert isinstance(currentRecipe, unicode)
+        assert isinstance(id, long)
+        assert isinstance(isUp, bool)
+        assert isinstance(jobEndTime, unicode)
+        assert isinstance(materials, list)
+        assert isinstance(pendingRecipes, list)
+        assert isinstance(recipeNo, long)
+        assert isinstance(speeduped, bool)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.currentRecipe = currentRecipe
+        self.id = id
+        self.isUp = isUp
+        self.item = '@SC_COOK_GRAVE'
+        self.jobEndTime = jobEndTime
+        self.materials = materials
+        self.pendingRecipes = pendingRecipes
+        self.recipeNo = recipeNo
+        self.speeduped = speeduped
+        self.type = 'cookGrave'
+        self.x = x
+        self.y = y
+
+
 class GameCookGraveWithBrains(GameType):
     def __init__(self, speeduped,  # @ReservedAssignment
                  id,  # @ReservedAssignment
@@ -1004,11 +1075,103 @@ class GameDecoration(GameType):
         self.y = y
 
 
+class GameDiggerGrave(GameType):
+    def __init__(self, started,  # @ReservedAssignment
+                 gainDone,  # @ReservedAssignment
+                 materials,  # @ReservedAssignment
+                 y,  # @ReservedAssignment
+                 x,  # @ReservedAssignment
+                 id):  # @ReservedAssignment
+        assert isinstance(gainDone, long)
+        assert isinstance(id, long)
+        assert isinstance(materials, long)
+        assert isinstance(started, bool)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.gainDone = gainDone
+        self.id = id
+        self.item = '@SC_DIGGER_GRAVE'
+        self.materials = materials
+        self.started = started
+        self.type = 'diggerGrave'
+        self.x = x
+        self.y = y
+
+
+class GameDiggerGraveWithBrains(GameType):
+    def __init__(self, gainTime,  # @ReservedAssignment
+                 started,  # @ReservedAssignment
+                 gainDone,  # @ReservedAssignment
+                 materials,  # @ReservedAssignment
+                 y,  # @ReservedAssignment
+                 x,  # @ReservedAssignment
+                 id):  # @ReservedAssignment
+        assert isinstance(gainDone, long)
+        assert isinstance(gainTime, unicode)
+        assert isinstance(id, long)
+        assert isinstance(materials, long)
+        assert isinstance(started, bool)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.gainDone = gainDone
+        self.gainTime = gainTime
+        self.id = id
+        self.item = '@SC_FISHER_GRAVE_BRAINER'
+        self.materials = materials
+        self.started = started
+        self.type = 'diggerGraveWithBrains'
+        self.x = x
+        self.y = y
+
+
 class GameEVT(GameType):
     def __init__(self, events):  # @ReservedAssignment
         assert isinstance(events, list)
         self.events = events
         self.type = 'EVT'
+
+
+class GameElvisTeamGrave(GameType):
+    def __init__(self, started,  # @ReservedAssignment
+                 y,  # @ReservedAssignment
+                 x,  # @ReservedAssignment
+                 id):  # @ReservedAssignment
+        assert isinstance(id, long)
+        assert isinstance(started, bool)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.id = id
+        self.item = '@SC_TEAM_GRAVE_WITH_BRAINS'
+        self.started = started
+        self.type = 'elvisTeamGrave'
+        self.x = x
+        self.y = y
+
+
+class GameFruitTree(GameType):
+    def __init__(self, fruitingCount,  # @ReservedAssignment
+                 fertilized,  # @ReservedAssignment
+                 jobFinishTime,  # @ReservedAssignment
+                 jobStartTime,  # @ReservedAssignment
+                 y,  # @ReservedAssignment
+                 x,  # @ReservedAssignment
+                 id):  # @ReservedAssignment
+        assert isinstance(fertilized, bool)
+        assert isinstance(fruitingCount, long)
+        assert isinstance(id, long)
+        assert isinstance(jobFinishTime, unicode)
+        assert isinstance(jobStartTime, unicode)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.fertilized = fertilized
+        self.fruitingCount = fruitingCount
+        self.id = id
+        self.item = '@FT_MANDARINE'
+        self.jobFinishTime = jobFinishTime
+        self.jobStartTime = jobStartTime
+        self.type = 'fruitTree'
+        self.x = x
+        self.y = y
 
 
 class GameGameMission(GameType):
@@ -1023,6 +1186,23 @@ class GameGameMission(GameType):
         self.item = '@Q15_11'
         self.tasks = tasks
         self.type = 'gameMission'
+
+
+class GameGuardGrave(GameType):
+    def __init__(self, started,  # @ReservedAssignment
+                 y,  # @ReservedAssignment
+                 x,  # @ReservedAssignment
+                 id):  # @ReservedAssignment
+        assert isinstance(id, long)
+        assert isinstance(started, bool)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.id = id
+        self.item = '@SC_GUARD_GRAVE'
+        self.started = started
+        self.type = 'guardGrave'
+        self.x = x
+        self.y = y
 
 
 class GameHalloweenTower(GameType):
@@ -1041,6 +1221,34 @@ class GameHalloweenTower(GameType):
         self.level = level
         self.type = 'halloweenTower'
         self.users = users
+        self.x = x
+        self.y = y
+
+
+class GameMetroEnter(GameType):
+    def __init__(self, y,  # @ReservedAssignment
+                 id,  # @ReservedAssignment
+                 x):  # @ReservedAssignment
+        assert isinstance(id, long)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.id = id
+        self.item = '@METRO_ENTER'
+        self.type = 'metroEnter'
+        self.x = x
+        self.y = y
+
+
+class GameMetroExit(GameType):
+    def __init__(self, y,  # @ReservedAssignment
+                 id,  # @ReservedAssignment
+                 x):  # @ReservedAssignment
+        assert isinstance(id, long)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.id = id
+        self.item = '@METRO_EXIT'
+        self.type = 'metroExit'
         self.x = x
         self.y = y
 
@@ -1070,6 +1278,29 @@ class GameNEW_YEAR(GameType):
         self.msg = msg
         self.type = 'NEW_YEAR'
         self.user = user
+
+
+class GameNewYearTree(GameType):
+    def __init__(self, users,  # @ReservedAssignment
+                 level,  # @ReservedAssignment
+                 nextPlayTimes,  # @ReservedAssignment
+                 y,  # @ReservedAssignment
+                 x,  # @ReservedAssignment
+                 id):  # @ReservedAssignment
+        assert isinstance(id, long)
+        assert isinstance(level, long)
+        assert isinstance(nextPlayTimes, GameNextPlayTimes)
+        assert isinstance(users, list)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.id = id
+        self.item = '@B_SPRUCE_BIG'
+        self.level = level
+        self.nextPlayTimes = nextPlayTimes
+        self.type = 'newYearTree'
+        self.users = users
+        self.x = x
+        self.y = y
 
 
 class GamePickup(GameType):
@@ -1232,9 +1463,49 @@ class GameStoneGrave(GameType):
         self.y = y
 
 
+class GameTHANKSGIVING(GameType):
+    def __init__(self, count,  # @ReservedAssignment
+                 free,  # @ReservedAssignment
+                 user,  # @ReservedAssignment
+                 msg,  # @ReservedAssignment
+                 id):  # @ReservedAssignment
+        assert isinstance(count, long)
+        assert isinstance(free, bool)
+        assert isinstance(id, long)
+        assert isinstance(msg, unicode)
+        assert isinstance(user, unicode)
+        self.count = count
+        self.free = free
+        self.id = id
+        self.item = '@CR_113'
+        self.msg = msg
+        self.type = 'THANKSGIVING'
+        self.user = user
+
+
 class GameTIME(GameType):
     def __init__(self, ):  # @ReservedAssignment
         self.type = 'TIME'
+
+
+class GameThanksgivingTable(GameType):
+    def __init__(self, users,  # @ReservedAssignment
+                 y,  # @ReservedAssignment
+                 x,  # @ReservedAssignment
+                 usedPlatesCount,  # @ReservedAssignment
+                 id):  # @ReservedAssignment
+        assert isinstance(id, long)
+        assert isinstance(usedPlatesCount, long)
+        assert isinstance(users, list)
+        assert isinstance(x, long)
+        assert isinstance(y, long)
+        self.id = id
+        self.item = '@B_BULB_TABLE4_1'
+        self.type = 'thanksgivingTable'
+        self.usedPlatesCount = usedPlatesCount
+        self.users = users
+        self.x = x
+        self.y = y
 
 
 if __name__ == '__main__':
