@@ -358,6 +358,20 @@ class GameEVTCommand(CommonEqualityMixin):
         self.id = id
 
 
+class GameFertilizePlant(GameAction):
+    def __init__(self, jobFinishTime,  # @ReservedAssignment
+                 jobStartTime,  # @ReservedAssignment
+                 objId):  # @ReservedAssignment
+        assert isinstance(jobFinishTime, unicode)
+        assert isinstance(jobStartTime, unicode)
+        assert isinstance(objId, long)
+        self.action = 'fertilize'
+        self.jobFinishTime = jobFinishTime
+        self.jobStartTime = jobStartTime
+        self.objId = objId
+        self.type = 'plant'
+
+
 class GameGameSettings(CommonEqualityMixin):
     def __init__(self, sound,
                  tutorialState,

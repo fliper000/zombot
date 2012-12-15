@@ -8,7 +8,8 @@ import time
 from game_state.game_event import dict2obj, obj2dict, GameItemReader
 from game_state.game_types import GameEVT, GameTIME, GameSTART,\
     GameApplyGiftEvent, GameGift, GameInfo, GameDigItem, GameSlag, \
-    GamePlant, GamePickItem, GameBuyItem, GamePickPickup, GameFruitTree
+    GamePlant, GamePickItem, GameBuyItem, GamePickPickup, GameFruitTree,\
+    GameFertilizePlant
 import pprint
 
 logger = logging.getLogger(__name__)
@@ -79,7 +80,7 @@ class Game():
             self.sendGameEvents([pick_event])
 
     def pickHarvest(self, harvestItem):
-        if int(harvestItem.jobFinishTime) < 0:
+        if int(harvestItem.jobFinishTime) < self._getCurrentClientTime():
             item = self.__itemReader.get(harvestItem.item)
             logger.info(u"Собираем '" + item.name + "' " +
                         str(harvestItem.id) +
@@ -188,6 +189,12 @@ class Game():
         game_response = self.send(command)
         self.__events_to_handle += game_response.events
 
+    def getObjectById(self, objId):
+        for game_object in self.__game_location.gameObjects:
+            if game_object.id == objId:
+                return game_object
+        return None
+
     def handleEvent(self, event_to_handle):
         if event_to_handle.action == 'addGift':
             logger.info(u"Получен подарок.")
@@ -196,6 +203,16 @@ class Game():
         elif event_to_handle.action == 'add':
             if event_to_handle.type == 'pickup':
                 self.pickPickups(event_to_handle.pickups)
+        elif event_to_handle.type == GameFertilizePlant(u"", u"", 0L).type:
+            # fertilized
+            # getObjectById
+            objId = event_to_handle.objId
+            gameObject = self.getObjectById(objId)
+            if gameObject is None:
+                logger.critical("OMG! No such object")
+            gameObject.fertilized = True
+            gameObject.jobFinishTime = event_to_handle.jobFinishTime
+            gameObject.jobStartTime = event_to_handle.jobStartTime
         else:
             self.logUnknownEvent(event_to_handle)
         self.__events_to_handle.remove(event_to_handle)
@@ -245,7 +262,17 @@ class Game():
 
     def _getClientTime(self):
         random.seed()
-        return long(random.randrange(2800, 4000))
+        self._clientTime = long(random.randrange(2800, 4000))
+        self._startTime = time.time()
+        return self._clientTime
+
+    def _getCurrentClientTime(self):
+        '''
+        returns the current in-game time (in milliseconds)
+        '''
+        currentTime = self._clientTime
+        currentTime += (time.time() - self._startTime) * 1000
+        return currentTime
 
     def _getClientVersion(self):
         return long(1352868088)
