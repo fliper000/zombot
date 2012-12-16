@@ -43,18 +43,24 @@ class Connection(object):
         if data is not None:
             data = urllib.urlencode(self.encode_dict(data))
         logger.info('request: ' + self.__url + ' ' + str(data))
-        response = opener.open(self.__url, data)
+        try:
+            response = opener.open(self.__url, data)
+        except urllib2.HTTPError:
+            response = None
         return response
 
     def sendRequest(self, data=None, cookies=None, getCookies=False):
         response = self.__getResponse(data, cookies)
-        content = self.__readContent(response)
-        response.close()
-        logger.info('response: ' + content)
-        if getCookies:
-            return Cookie.SimpleCookie(response.info().get('Set-Cookie'))
+        if response:
+            content = self.__readContent(response)
+            response.close()
+            logger.info('response: ' + content)
+            if getCookies:
+                return Cookie.SimpleCookie(response.info().get('Set-Cookie'))
+            else:
+                return content
         else:
-            return content
+            return None
 
     def __readContent(self, response):
         encoding = response.headers.getparam('charset')

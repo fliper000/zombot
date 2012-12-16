@@ -13,15 +13,16 @@ class VK():
             session_cookies = self._getSessionCookies()
         vk = Connection('http://vk.com/app' + str(app_id))
         html = vk.sendRequest(None, cookies=session_cookies)
-        matcher = re.compile('.*var params = (.*);$')
         params = None
-        for line in html.split('\n'):
-            match = matcher.match(line)
-            if match is not None:
-                params = match.group(1)
-                break
-        if params is not None:
-            return json.loads(params)
+        if html:
+            matcher = re.compile('.*var params = (.*);$')
+            for line in html.split('\n'):
+                match = matcher.match(line)
+                if match is not None:
+                    params = match.group(1)
+                    break
+            if params is not None:
+                return json.loads(params)
         return params
 
     def _validateSessionCookies(self, session_cookies):
