@@ -84,17 +84,31 @@ class Game():
             time.sleep(30)
 
     def rouletteRoll(self):
-        roulettes = self.getAllObjectsByType(
+        buildings = self.getAllObjectsByType(
                         GameBuilding(0L, GameNextPlayTimes(), 0L, 0L, 0L).type)
-        for roulette in list(roulettes):
-            for (key, val) in roulette.nextPlayTimes.__dict__.iteritems():
-                item = self.__itemReader.get(roulette.item)
-                if int(val) <= self._getCurrentClientTime():
-                    logger.info(u"Крутим '" + item.name + "' " +
-                        str(roulette.id) +
+        for building in list(buildings):
+            building_item = self.__itemReader.get(building.item)
+            for game in building_item.games:
+                game_id = game.id
+                play_cost = None
+                if hasattr(game, 'playCost'):
+                    play_cost = game.playCost
+                next_play = None
+                next_play_times = building.nextPlayTimes.__dict__
+                if game_id in next_play_times:
+                    next_play = int(next_play_times[game_id])
+                if (
+                        next_play and
+                        next_play <= self._getCurrentClientTime() and
+                        play_cost is None
+                ):
+                    logger.info(
+                        u"Крутим рулетку в '" +
+                        building_item.name + "' " +
+                        str(building.id) +
                         u" по координатам (" +
-                        str(roulette.x) + u", " + str(roulette.y) + u")")
-                    roll = GamePlayGame(roulette.id, key)
+                        str(building.x) + u", " + str(building.y) + u")")
+                    roll = GamePlayGame(building.id, game_id)
                     self.sendGameEvents([roll])
 
     def automaticActions(self):
