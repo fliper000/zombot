@@ -589,6 +589,17 @@ class GamePickPickup(GameAction):
         self.type = 'pickup'
 
 
+class GamePlayGame(GameAction):
+    def __init__(self, objId,  # @ReservedAssignment
+                 extraId):  # @ReservedAssignment
+        assert isinstance(extraId, unicode)
+        assert isinstance(objId, long)
+        self.action = 'play'
+        self.extraId = extraId
+        self.objId = objId
+        self.type = 'game'
+
+
 class GamePlayerSettings(CommonEqualityMixin):
     def __init__(self, userName,
                  dressId,

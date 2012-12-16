@@ -10,7 +10,7 @@ from game_state.game_event import dict2obj, obj2dict
 from game_state.game_types import GameEVT, GameTIME, GameSTART,\
     GameApplyGiftEvent, GameGift, GameInfo, GameDigItem, GameSlag, \
     GamePlant, GamePickItem, GameBuyItem, GamePickPickup, GameFruitTree,\
-    GameFertilizePlant
+    GameFertilizePlant, GameBuilding, GameNextPlayTimes, GamePlayGame
 import pprint
 
 logger = logging.getLogger(__name__)
@@ -83,10 +83,25 @@ class Game():
             self.automaticActions()
             time.sleep(30)
 
+    def rouletteRoll(self):
+        roulettes = self.getAllObjectsByType(
+                        GameBuilding(0L, GameNextPlayTimes(), 0L, 0L, 0L).type)
+        for roulette in list(roulettes):
+            for (key, val) in roulette.nextPlayTimes.__dict__.iteritems():
+                item = self.__itemReader.get(roulette.item)
+                if int(val) <= self._getCurrentClientTime():
+                    logger.info(u"Крутим '" + item.name + "' " +
+                        str(roulette.id) +
+                        u" по координатам (" +
+                        str(roulette.x) + u", " + str(roulette.y) + u")")
+                    roll = GamePlayGame(roulette.id, key)
+                    self.sendGameEvents([roll])
+
     def automaticActions(self):
         self.receiveAllGifts()
         self.harvestAndDigAll()
         self.seedAll()
+        self.rouletteRoll()
 
     def pickPickups(self, pickups):
         if pickups:
