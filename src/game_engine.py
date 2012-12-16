@@ -68,6 +68,9 @@ class Game():
 
         self.eventLoop()
 
+    def getGameLocation(self):
+        return self.__game_location
+
     def eventLoop(self):
         '''
         in a loop, every 30 seconds
@@ -185,7 +188,7 @@ class Game():
 
     def getAllObjectsByType(self, object_type):
         objects = []
-        for game_object in self.__game_location.gameObjects:
+        for game_object in self.getGameLocation().gameObjects:
             item = self.__itemReader.get(game_object.item)
             if game_object.type == object_type or item.type == object_type:
                 objects.append(game_object)
@@ -237,10 +240,27 @@ class Game():
         self.__events_to_handle += game_response.events
 
     def getObjectById(self, objId):
-        for game_object in self.__game_location.gameObjects:
+        for game_object in self.getGameLocation().gameObjects:
             if game_object.id == objId:
                 return game_object
         return None
+
+    def handleGameResultEvent(self, event_to_handle):
+        nextPlayDate = event_to_handle.nextPlayDate
+        extraId = event_to_handle.extraId
+        gameObject = self.getObjectById(event_to_handle.objId)
+        if gameObject is None:
+            logger.critical("OMG! No such object")
+        gameObject.nextPlayTimes.__setattr__(extraId, nextPlayDate)
+        prize_pos = event_to_handle.result.pos
+        building = self.__itemReader.get(gameObject.item)
+        for game in building.games:
+            if game.id == extraId:
+                prize_item = game.prizes[prize_pos].item
+                prize = self.__itemReader.get(prize_item)
+                count = game.prizes[prize_pos].count
+                logger.info('Вы выиграли ' + prize.name +
+                            '(' + str(count) + ' шт.)')
 
     def handleEvent(self, event_to_handle):
         if event_to_handle.action == 'addGift':
@@ -253,13 +273,14 @@ class Game():
         elif event_to_handle.type == GameFertilizePlant(u"", u"", 0L).type:
             # fertilized
             # getObjectById
-            objId = event_to_handle.objId
-            gameObject = self.getObjectById(objId)
+            gameObject = self.getObjectById(event_to_handle.objId)
             if gameObject is None:
                 logger.critical("OMG! No such object")
             gameObject.fertilized = True
             gameObject.jobFinishTime = event_to_handle.jobFinishTime
             gameObject.jobStartTime = event_to_handle.jobStartTime
+        elif event_to_handle.type == GamePlayGame.type:
+            self.handleGameResultEvent(event_to_handle)
         else:
             self.logUnknownEvent(event_to_handle)
         self.__events_to_handle.remove(event_to_handle)
