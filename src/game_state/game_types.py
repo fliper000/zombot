@@ -6,6 +6,8 @@ class GameAction(CommonEqualityMixin):
 
 
 class GameAddPickup(GameAction):
+    type = 'pickup'
+
     def __init__(self, pickups):  # @ReservedAssignment
         assert isinstance(pickups, list)
         self.action = 'add'
@@ -14,6 +16,8 @@ class GameAddPickup(GameAction):
 
 
 class GameApplyCompGiftItem(GameAction):
+    type = 'item'
+
     def __init__(self, itemId,  # @ReservedAssignment
                  extraId,  # @ReservedAssignment
                  objId,  # @ReservedAssignment
@@ -34,6 +38,8 @@ class GameApplyCompGiftItem(GameAction):
 
 
 class GameApplyGiftEvent(GameAction):
+    type = 'gift'
+
     def __init__(self, gift):  # @ReservedAssignment
         assert isinstance(gift, GameGift)
         self.action = 'applyGift'
@@ -54,6 +60,8 @@ class GameBurySlot(CommonEqualityMixin):
 
 
 class GameBuyItem(GameAction):
+    type = 'item'
+
     def __init__(self, itemId,  # @ReservedAssignment
                  objId,  # @ReservedAssignment
                  y,  # @ReservedAssignment
@@ -341,6 +349,8 @@ class GameDailyBonus(CommonEqualityMixin):
 
 
 class GameDigItem(GameAction):
+    type = 'item'
+
     def __init__(self, objId):  # @ReservedAssignment
         assert isinstance(objId, long)
         self.action = 'dig'
@@ -359,6 +369,8 @@ class GameEVTCommand(CommonEqualityMixin):
 
 
 class GameFertilizePlant(GameAction):
+    type = 'plant'
+
     def __init__(self, jobFinishTime,  # @ReservedAssignment
                  jobStartTime,  # @ReservedAssignment
                  objId):  # @ReservedAssignment
@@ -385,6 +397,8 @@ class GameGameSettings(CommonEqualityMixin):
 
 
 class GameGameStateEvent(GameAction):
+    type = 'gameState'
+
     def __init__(self, isAway,  # @ReservedAssignment
                  haveTrickTreating,  # @ReservedAssignment
                  haveTreasure,  # @ReservedAssignment
@@ -432,6 +446,8 @@ class GameGameStateEvent(GameAction):
 
 
 class GameGetMissionsMission(GameAction):
+    type = 'mission'
+
     def __init__(self, id,  # @ReservedAssignment
                  missions):  # @ReservedAssignment
         assert isinstance(id, unicode)
@@ -547,6 +563,8 @@ class GameMailBonus(CommonEqualityMixin):
 
 
 class GameMoveToStorageItem(GameAction):
+    type = 'item'
+
     def __init__(self, objId):  # @ReservedAssignment
         assert isinstance(objId, long)
         self.action = 'moveToStorage'
@@ -574,6 +592,8 @@ class GameParams(CommonEqualityMixin):
 
 
 class GamePickItem(GameAction):
+    type = 'item'
+
     def __init__(self, objId):  # @ReservedAssignment
         assert isinstance(objId, long)
         self.action = 'pick'
@@ -582,6 +602,8 @@ class GamePickItem(GameAction):
 
 
 class GamePickPickup(GameAction):
+    type = 'pickup'
+
     def __init__(self, pickups):  # @ReservedAssignment
         assert isinstance(pickups, list)
         self.action = 'pick'
@@ -590,6 +612,8 @@ class GamePickPickup(GameAction):
 
 
 class GamePlayGame(GameAction):
+    type = 'game'
+
     def __init__(self, objId,  # @ReservedAssignment
                  extraId):  # @ReservedAssignment
         assert isinstance(extraId, unicode)
@@ -627,6 +651,8 @@ class GamePrize(GameItem):
 
 
 class GameRemoteNewYearItem(GameAction):
+    type = 'item'
+
     def __init__(self, itemId,  # @ReservedAssignment
                  objId,  # @ReservedAssignment
                  id):  # @ReservedAssignment
@@ -816,6 +842,8 @@ class GameType(CommonEqualityMixin):
 
 
 class GameUpgradeBuilding(GameType):
+    type = 'upgradeBuilding'
+
     def __init__(self, count,  # @ReservedAssignment
                  finished):  # @ReservedAssignment
         assert isinstance(count, long)
@@ -835,6 +863,8 @@ class GameUser(CommonEqualityMixin):
 
 
 class GameWoodGrave(GameType):
+    type = 'woodGrave'
+
     def __init__(self, target,  # @ReservedAssignment
                  startCounter,  # @ReservedAssignment
                  materials,  # @ReservedAssignment
@@ -861,6 +891,8 @@ class GameWoodGrave(GameType):
 
 
 class GameWoodTree(GameType):
+    type = 'woodTree'
+
     def __init__(self, materialCount,  # @ReservedAssignment
                  gainStarted,  # @ReservedAssignment
                  y,  # @ReservedAssignment
@@ -881,6 +913,8 @@ class GameWoodTree(GameType):
 
 
 class GameXp(GameType):
+    type = 'xp'
+
     def __init__(self, count,  # @ReservedAssignment
                  x,  # @ReservedAssignment
                  y):  # @ReservedAssignment
@@ -894,6 +928,8 @@ class GameXp(GameType):
 
 
 class GameZombieWork(GameType):
+    type = 'zombieWork'
+
     def __init__(self, count,  # @ReservedAssignment
                  finished):  # @ReservedAssignment
         assert isinstance(count, long)
@@ -904,6 +940,8 @@ class GameZombieWork(GameType):
 
 
 class GameADMIN(GameType):
+    type = 'ADMIN'
+
     def __init__(self, count,  # @ReservedAssignment
                  free,  # @ReservedAssignment
                  user,  # @ReservedAssignment
@@ -924,6 +962,8 @@ class GameADMIN(GameType):
 
 
 class GameBase(GameType):
+    type = 'base'
+
     def __init__(self, y,  # @ReservedAssignment
                  id,  # @ReservedAssignment
                  x):  # @ReservedAssignment
@@ -938,6 +978,8 @@ class GameBase(GameType):
 
 
 class GameBridge(GameType):
+    type = 'bridge'
+
     def __init__(self, level,  # @ReservedAssignment
                  nextPlayTimes,  # @ReservedAssignment
                  y,  # @ReservedAssignment
@@ -958,6 +1000,8 @@ class GameBridge(GameType):
 
 
 class GameBuilding(GameType):
+    type = 'building'
+
     def __init__(self, level,  # @ReservedAssignment
                  nextPlayTimes,  # @ReservedAssignment
                  y,  # @ReservedAssignment
@@ -978,6 +1022,8 @@ class GameBuilding(GameType):
 
 
 class GameCoins(GameType):
+    type = 'coins'
+
     def __init__(self, count,  # @ReservedAssignment
                  x,  # @ReservedAssignment
                  y):  # @ReservedAssignment
@@ -991,6 +1037,8 @@ class GameCoins(GameType):
 
 
 class GameCollection(GameType):
+    type = 'collection'
+
     def __init__(self, count,  # @ReservedAssignment
                  img,  # @ReservedAssignment
                  y,  # @ReservedAssignment
@@ -1010,6 +1058,8 @@ class GameCollection(GameType):
 
 
 class GameCookGrave(GameType):
+    type = 'cookGrave'
+
     def __init__(self, jobEndTime,  # @ReservedAssignment
                  speeduped,  # @ReservedAssignment
                  id,  # @ReservedAssignment
@@ -1045,6 +1095,8 @@ class GameCookGrave(GameType):
 
 
 class GameCookGraveWithBrains(GameType):
+    type = 'cookGraveWithBrains'
+
     def __init__(self, speeduped,  # @ReservedAssignment
                  id,  # @ReservedAssignment
                  materials,  # @ReservedAssignment
@@ -1074,6 +1126,8 @@ class GameCookGraveWithBrains(GameType):
 
 
 class GameCountedItem(GameType):
+    type = 'countedItem'
+
     def __init__(self, count,  # @ReservedAssignment
                  finished):  # @ReservedAssignment
         assert isinstance(count, long)
@@ -1084,6 +1138,8 @@ class GameCountedItem(GameType):
 
 
 class GameDecoration(GameType):
+    type = 'decoration'
+
     def __init__(self, placeTime,  # @ReservedAssignment
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment
@@ -1101,6 +1157,8 @@ class GameDecoration(GameType):
 
 
 class GameDiggerGrave(GameType):
+    type = 'diggerGrave'
+
     def __init__(self, started,  # @ReservedAssignment
                  gainDone,  # @ReservedAssignment
                  materials,  # @ReservedAssignment
@@ -1124,6 +1182,8 @@ class GameDiggerGrave(GameType):
 
 
 class GameDiggerGraveWithBrains(GameType):
+    type = 'diggerGraveWithBrains'
+
     def __init__(self, gainTime,  # @ReservedAssignment
                  started,  # @ReservedAssignment
                  gainDone,  # @ReservedAssignment
@@ -1150,6 +1210,8 @@ class GameDiggerGraveWithBrains(GameType):
 
 
 class GameEVT(GameType):
+    type = 'EVT'
+
     def __init__(self, events):  # @ReservedAssignment
         assert isinstance(events, list)
         self.events = events
@@ -1157,6 +1219,8 @@ class GameEVT(GameType):
 
 
 class GameElvisTeamGrave(GameType):
+    type = 'elvisTeamGrave'
+
     def __init__(self, started,  # @ReservedAssignment
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment
@@ -1174,6 +1238,8 @@ class GameElvisTeamGrave(GameType):
 
 
 class GameFruitTree(GameType):
+    type = 'fruitTree'
+
     def __init__(self, fruitingCount,  # @ReservedAssignment
                  fertilized,  # @ReservedAssignment
                  jobFinishTime,  # @ReservedAssignment
@@ -1200,6 +1266,8 @@ class GameFruitTree(GameType):
 
 
 class GameGameMission(GameType):
+    type = 'gameMission'
+
     def __init__(self, disabled,  # @ReservedAssignment
                  finished,  # @ReservedAssignment
                  tasks):  # @ReservedAssignment
@@ -1214,6 +1282,8 @@ class GameGameMission(GameType):
 
 
 class GameGuardGrave(GameType):
+    type = 'guardGrave'
+
     def __init__(self, started,  # @ReservedAssignment
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment
@@ -1231,6 +1301,8 @@ class GameGuardGrave(GameType):
 
 
 class GameHalloweenTower(GameType):
+    type = 'halloweenTower'
+
     def __init__(self, users,  # @ReservedAssignment
                  level,  # @ReservedAssignment
                  y,  # @ReservedAssignment
@@ -1251,6 +1323,8 @@ class GameHalloweenTower(GameType):
 
 
 class GameMetroEnter(GameType):
+    type = 'metroEnter'
+
     def __init__(self, y,  # @ReservedAssignment
                  id,  # @ReservedAssignment
                  x):  # @ReservedAssignment
@@ -1265,6 +1339,8 @@ class GameMetroEnter(GameType):
 
 
 class GameMetroExit(GameType):
+    type = 'metroExit'
+
     def __init__(self, y,  # @ReservedAssignment
                  id,  # @ReservedAssignment
                  x):  # @ReservedAssignment
@@ -1279,6 +1355,8 @@ class GameMetroExit(GameType):
 
 
 class GameMoveGameObjectToLocation(GameType):
+    type = 'moveGameObjectToLocation'
+
     def __init__(self, finished):  # @ReservedAssignment
         assert isinstance(finished, bool)
         self.finished = finished
@@ -1286,6 +1364,8 @@ class GameMoveGameObjectToLocation(GameType):
 
 
 class GameNEW_YEAR(GameType):
+    type = 'NEW_YEAR'
+
     def __init__(self, count,  # @ReservedAssignment
                  free,  # @ReservedAssignment
                  user,  # @ReservedAssignment
@@ -1306,6 +1386,8 @@ class GameNEW_YEAR(GameType):
 
 
 class GameNewYearTree(GameType):
+    type = 'newYearTree'
+
     def __init__(self, users,  # @ReservedAssignment
                  level,  # @ReservedAssignment
                  nextPlayTimes,  # @ReservedAssignment
@@ -1329,6 +1411,8 @@ class GameNewYearTree(GameType):
 
 
 class GamePickup(GameType):
+    type = 'pickup'
+
     def __init__(self, parentId,  # @ReservedAssignment
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment
@@ -1346,6 +1430,8 @@ class GamePickup(GameType):
 
 
 class GamePier(GameType):
+    type = 'pier'
+
     def __init__(self, level,  # @ReservedAssignment
                  nextPlayTimes,  # @ReservedAssignment
                  y,  # @ReservedAssignment
@@ -1366,6 +1452,8 @@ class GamePier(GameType):
 
 
 class GamePlant(GameType):
+    type = 'plant'
+
     def __init__(self, fertilized,  # @ReservedAssignment
                  jobFinishTime,  # @ReservedAssignment
                  jobStartTime,  # @ReservedAssignment
@@ -1389,6 +1477,8 @@ class GamePlant(GameType):
 
 
 class GameSTART(GameType):
+    type = 'START'
+
     def __init__(self, lang,  # @ReservedAssignment
                  info,  # @ReservedAssignment
                  ad,  # @ReservedAssignment
@@ -1408,6 +1498,8 @@ class GameSTART(GameType):
 
 
 class GameSlag(GameType):
+    type = 'Slag'
+
     def __init__(self, y,  # @ReservedAssignment
                  id,  # @ReservedAssignment
                  x):  # @ReservedAssignment
@@ -1422,6 +1514,8 @@ class GameSlag(GameType):
 
 
 class GameSocial(GameType):
+    type = 'social'
+
     def __init__(self, disabled,  # @ReservedAssignment
                  finished,  # @ReservedAssignment
                  limitShow):  # @ReservedAssignment
@@ -1436,6 +1530,8 @@ class GameSocial(GameType):
 
 
 class GameStayOnLocation(GameType):
+    type = 'stayOnLocation'
+
     def __init__(self, finished):  # @ReservedAssignment
         assert isinstance(finished, bool)
         self.finished = finished
@@ -1443,6 +1539,8 @@ class GameStayOnLocation(GameType):
 
 
 class GameStone(GameType):
+    type = 'stone'
+
     def __init__(self, materialCount,  # @ReservedAssignment
                  gainStarted,  # @ReservedAssignment
                  y,  # @ReservedAssignment
@@ -1463,6 +1561,8 @@ class GameStone(GameType):
 
 
 class GameStoneGrave(GameType):
+    type = 'stoneGrave'
+
     def __init__(self, target,  # @ReservedAssignment
                  startCounter,  # @ReservedAssignment
                  materials,  # @ReservedAssignment
@@ -1489,6 +1589,8 @@ class GameStoneGrave(GameType):
 
 
 class GameTHANKSGIVING(GameType):
+    type = 'THANKSGIVING'
+
     def __init__(self, count,  # @ReservedAssignment
                  free,  # @ReservedAssignment
                  user,  # @ReservedAssignment
@@ -1509,11 +1611,15 @@ class GameTHANKSGIVING(GameType):
 
 
 class GameTIME(GameType):
+    type = 'TIME'
+
     def __init__(self, ):  # @ReservedAssignment
         self.type = 'TIME'
 
 
 class GameThanksgivingTable(GameType):
+    type = 'thanksgivingTable'
+
     def __init__(self, users,  # @ReservedAssignment
                  y,  # @ReservedAssignment
                  x,  # @ReservedAssignment

@@ -18,6 +18,8 @@ class klass(object):
         if self.attrs == {}:
             string += '    pass\n'
         else:
+            if 'type' in self.attrs:
+                string += "    type = '" + self.attrs['type'] + "'\n\n"
             is_reserved = len(Set(['list', 'id', 'type']).intersection(
                 self.attrs.keys())) > 0
             if is_reserved:
