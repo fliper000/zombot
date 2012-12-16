@@ -5,6 +5,7 @@ import vkutils
 import logging
 import os
 import errno
+from user_interface import UserPrompt
 
 
 def mkdir_p(path):
@@ -33,24 +34,10 @@ def setup_logging(user_name):
     )
 
 
-def select_user(users):
-    prompt_string = "\n".join([str(index + 1) + ": " + user
-                               for index, user in enumerate(users)])
-    selected_user_index = -1
-    while not selected_user_index in range(len(users)):
-        try:
-            selected_user_index = int(raw_input(prompt_string + "\n")) - 1
-        except ValueError:
-            pass
-    selected_user = users[selected_user_index]
-    print "You selected " + selected_user
-    return selected_user
-
-
 def read_params():
     settings = Settings()
     users = settings.getUsers()
-    selected_user = select_user(users)
+    selected_user = UserPrompt().prompt_user('Select user:', users)
     settings.setUser(selected_user)
     params = vkutils.VK(settings).getAppParams('612925')
     user_id = params['viewer_id']
@@ -63,7 +50,7 @@ def run_game():
     (user_id, auth_key, access_token) = read_params()
     setup_logging(str(user_id))
     connection = Connection('http://java.shadowlands.ru/zombievk/go')
-    Game(connection, user_id, auth_key, access_token).start()
+    Game(connection, user_id, auth_key, access_token, UserPrompt()).start()
 
 
 if __name__ == '__main__':

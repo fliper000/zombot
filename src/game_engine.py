@@ -5,7 +5,8 @@ from message_factory import Session
 import vkontakte
 import logging
 import time
-from game_state.game_event import dict2obj, obj2dict, GameItemReader
+from game_state.item_reader import GameItemReader, GameSeedReader
+from game_state.game_event import dict2obj, obj2dict
 from game_state.game_types import GameEVT, GameTIME, GameSTART,\
     GameApplyGiftEvent, GameGift, GameInfo, GameDigItem, GameSlag, \
     GamePlant, GamePickItem, GameBuyItem, GamePickPickup, GameFruitTree,\
@@ -17,7 +18,8 @@ logger = logging.getLogger(__name__)
 
 class Game():
 
-    def __init__(self, connection, user_id, auth_key, access_token):
+    def __init__(self, connection, user_id, auth_key, access_token,
+                  user_prompt):
         self.__connection = connection
         self.__access_token = access_token
         self.__session = Session(user_id, auth_key,
@@ -27,9 +29,20 @@ class Game():
         self.__itemReader = GameItemReader()
         self.__itemReader.download('items.txt')
         self.__itemReader.read('items.txt')
+        self.__user_prompt = user_prompt
+        self.__selected_seed = None
         self.__events_to_handle = []
         self.__receive_gifts_with_messages = False
         self.__receive_non_free_gifts = False
+
+    def select_plant_seed(self):
+        level = self.__game_state.level
+        location = self.__game_location.id
+        seed_reader = GameSeedReader(self.__itemReader)
+        available_seeds = seed_reader.getAvailablePlantSeedsDict(level, location)
+        seed_name = self.__user_prompt.prompt_user('Plant to seed:',
+                                                   available_seeds.keys())
+        self.__selected_seed = available_seeds[seed_name]
 
     def start(self):
         # load items dictionary
@@ -47,6 +60,8 @@ class Game():
         for gameObject in self.__game_location.gameObjects:
             #if gameObject.type != 'base':
                 logger.info(obj2dict(gameObject))
+
+        self.select_plant_seed()
 
         # TODO send getMissions
         # TODO handle getMissions response
@@ -71,6 +86,7 @@ class Game():
     def automaticActions(self):
         self.receiveAllGifts()
         self.harvestAndDigAll()
+        self.seedAll()
 
     def pickPickups(self, pickups):
         if pickups:
@@ -121,10 +137,12 @@ class Game():
             # convert slag to ground
             slag.type = 'base'
             slag.item = '@GROUND'
+
+    def seedAll(self):
         grounds = self.getAllObjectsByType('ground')
         for ground in list(grounds):
             item = self.__itemReader.get(ground.item)
-            seed_item = self.__itemReader.get(u'P_14R')
+            seed_item = self.__itemReader.get(self.__selected_seed)
             logger.info(u"Сеем '" + seed_item.name + u" на " + item.name + u"' " +
                         str(ground.id) +
                         u" по координатам (" +
@@ -133,7 +151,7 @@ class Game():
                                 ground.id,
                                 ground.y, ground.x)
             self.sendGameEvents([buy_event])
-            ground.type = u'item'
+            ground.type = u'plant'
             ground.item = unicode(seed_item.id)
 
     def getAllObjectsByType(self, object_type):

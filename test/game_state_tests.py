@@ -1,6 +1,7 @@
 # encoding=utf-8
 import unittest
-from game_state.game_event import GameItemReader, dict2obj
+from game_state.game_event import dict2obj
+from game_state.item_reader import GameItemReader
 
 
 class GameStateTest(unittest.TestCase):
