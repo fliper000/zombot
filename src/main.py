@@ -21,7 +21,8 @@ def mkdir_p(path):
 def setup_logging(user_name):
     log_directory = 'logs/' + user_name
     mkdir_p(log_directory)
-    logging.basicConfig(level=logging.INFO)
+    FORMAT = '%(asctime)-15s %(message)s'
+    logging.basicConfig(level=logging.INFO, format=FORMAT)
     connection_logger = logging.getLogger('connection')
     connection_logger.propagate = False
     connection_logger.addHandler(
