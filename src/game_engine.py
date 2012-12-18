@@ -10,7 +10,8 @@ from game_state.game_event import dict2obj, obj2dict
 from game_state.game_types import GameEVT, GameTIME, GameSTART,\
     GameApplyGiftEvent, GameGift, GameInfo, GameDigItem, GameSlag, \
     GamePlant, GamePickItem, GameBuyItem, GamePickPickup, GameFruitTree,\
-    GameFertilizePlant, GameBuilding, GameNextPlayTimes, GamePlayGame
+    GameFertilizePlant, GameBuilding, GameNextPlayTimes, GamePlayGame,\
+    GameWoodGrave, GameStartGainMaterial, GameWoodGraveDouble
 import pprint
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,8 @@ class Game():
         level = self.__game_state.level
         location = self.__game_location.id
         seed_reader = GameSeedReader(self.__itemReader)
-        available_seeds = seed_reader.getAvailablePlantSeedsDict(level, location)
+        available_seeds = seed_reader.getAvailablePlantSeedsDict(level,
+                                                                 location)
         seed_name = self.__user_prompt.prompt_user('Plant to seed:',
                                                    available_seeds.keys())
         self.__selected_seed = available_seeds[seed_name]
@@ -114,11 +116,57 @@ class Game():
                     roll = GamePlayGame(building.id, game_id)
                     self.sendGameEvents([roll])
 
+    def pickMaterial(self, wood_grave, material_id):
+        pick_item = GamePickItem(itemId=material_id, objId=wood_grave.id)
+        self.sendGameEvents([pick_item])
+
+    def pickAllWood(self):
+        wood_graves = self.getAllObjectsByType(GameWoodGrave.type)
+        wood_graves += self.getAllObjectsByType(GameWoodGraveDouble.type)
+        for wood_grave in wood_graves:
+            for material_id in list(wood_grave.materials):
+                material = self.__itemReader.get(material_id)
+                name = material.name
+                logger.info(u'Подбираем ' + name)
+                self.pickMaterial(wood_grave, material.id)
+                # update game state
+                wood_grave.materials.remove(material_id)
+
+    def removeObjectById(self, objId):
+        for game_object in list(self.getGameLocation().gameObjects):
+            if game_object.id == objId:
+                self.getGameLocation().gameObjects.remove(game_object)
+
+    def appendObject(self, obj):
+        self.getGameLocation().gameObjects.append(obj)
+
+    def updateJobDone(self, wood_grave):
+        if hasattr(wood_grave, 'jobEndTime'):
+            if int(wood_grave.jobEndTime) < self._getCurrentClientTime():
+                if hasattr(wood_grave, 'target'):
+                    target = self.getObjectById(wood_grave.target.id)
+                    target.materialCount -= 1
+                    target_item = self.__itemReader.get(target.item)
+                    logger.info("Материал добыт")
+                    wood_grave.materials.append(target_item.material)
+                    if target.materialCount == 0:
+                        logger.info("Ресурсы исчерпаны!")
+                        box_item = self.__itemReader.get(target_item.box)
+                        new_obj = dict2obj({'item': '@' + box_item.id,
+                                            'type': box_item.type,
+                                            'objId': wood_grave.target.id})
+                        self.removeObjectById(wood_grave.target.id)
+                        self.appendObject(new_obj)
+                        logger.info("'%s' превращён в '%s'" %
+                                    (target_item.name, box_item.name))
+                delattr(wood_grave, 'jobEndTime')
+
     def automaticActions(self):
         self.receiveAllGifts()
         self.harvestAndDigAll()
         self.seedAll()
         self.rouletteRoll()
+        self.pickAllWood()
 
     def pickPickups(self, pickups):
         if pickups:
@@ -134,31 +182,26 @@ class Game():
                         str(harvestItem.id) +
                         u" по координатам (" +
                         str(harvestItem.x) + u", " + str(harvestItem.y) + u")")
-            pick_event = GamePickItem(harvestItem.id)
+            pick_event = GamePickItem(objId=harvestItem.id)
             self.sendGameEvents([pick_event])
-            if harvestItem.type == GamePlant(False, u"", u"", 0L, 0L, 0L).type:
+            if harvestItem.type == GamePlant.type:
                 # convert plant to slag
                 harvestItem.type = GameSlag(0L, 0L, 0L).type
                 harvestItem.item = GameSlag(0L, 0L, 0L).item
-            elif harvestItem.type == GameFruitTree(0L, False,
-                                                       u"", u"", 0L,
-                                                       0L, 0L).type:
+            elif harvestItem.type == GameFruitTree.type:
                 harvestItem.fruitingCount -= 1
                 if harvestItem.fruitingCount == 0:
                     # convert tree to pick item
-                    harvestItem.type = GamePickItem(0).type
+                    harvestItem.type = GamePickItem.type
 
     def harvestAndDigAll(self):
-        plants = self.getAllObjectsByType(GamePlant(False, u"", u"",
-                                                    0L, 0L, 0L).type)
-        trees = self.getAllObjectsByType(GameFruitTree(0L, False,
-                                                       u"", u"", 0L,
-                                                       0L, 0L).type)
+        plants = self.getAllObjectsByType(GamePlant.type)
+        trees = self.getAllObjectsByType(GameFruitTree.type)
         harvestItems = plants + trees
         for harvestItem in list(harvestItems):
             self.pickHarvest(harvestItem)
 
-        slags = self.getAllObjectsByType(GameSlag(0L, 0L, 0L).type)
+        slags = self.getAllObjectsByType(GameSlag.type)
         for slag in list(slags):
             item = self.__itemReader.get(slag.item)
             logger.info(u"Копаем '" + item.name + "' " + str(slag.id) +
@@ -175,7 +218,8 @@ class Game():
         for ground in list(grounds):
             item = self.__itemReader.get(ground.item)
             seed_item = self.__itemReader.get(self.__selected_seed)
-            logger.info(u"Сеем '" + seed_item.name + u" на " + item.name + u"' " +
+            logger.info(u"Сеем '" + seed_item.name +
+                        u"' на '" + item.name + u"' " +
                         str(ground.id) +
                         u" по координатам (" +
                         str(ground.x) + u", " + str(ground.y) + u")")
@@ -262,6 +306,16 @@ class Game():
                 logger.info('Вы выиграли ' + prize.name +
                             '(' + str(count) + ' шт.)')
 
+    def handleGainMaterialEvent(self, event_to_handle, gameObject):
+        self.updateJobDone(gameObject)
+        if event_to_handle.action == 'start':
+            logger.info("Начата работа")
+            gameObject.target = dict2obj({'id': event_to_handle.targetId})
+            gameObject.jobStartTime = event_to_handle.jobStartTime
+            gameObject.jobEndTime = event_to_handle.jobEndTime
+        elif event_to_handle.action == 'stop':
+            logger.info("Окончена работа")
+
     def handleEvent(self, event_to_handle):
         if event_to_handle.action == 'addGift':
             logger.info(u"Получен подарок.")
@@ -281,6 +335,9 @@ class Game():
             gameObject.jobStartTime = event_to_handle.jobStartTime
         elif event_to_handle.type == GamePlayGame.type:
             self.handleGameResultEvent(event_to_handle)
+        elif event_to_handle.type == GameStartGainMaterial.type:
+            gameObject = self.getObjectById(event_to_handle.objId)
+            self.handleGainMaterialEvent(event_to_handle, gameObject)
         else:
             self.logUnknownEvent(event_to_handle)
         self.__events_to_handle.remove(event_to_handle)
