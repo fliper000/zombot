@@ -70,15 +70,15 @@ def obj2dict(obj):
           isinstance(obj, unicode) or
           isinstance(obj, NoneType)):
         d = obj
-    # handle dict
-    elif isinstance(obj, dict):
-        d = {}
-        for key in obj:
-            d[key] = obj2dict(obj[key])
     else:
+        # handle dict
         d = {}
-        for key in obj.__dict__:
-            d[key] = obj2dict(obj.__dict__[key])
+        if not isinstance(obj, dict):
+            obj = obj.__dict__
+        for key in obj:
+            new_dict = obj2dict(obj[key])
+            if new_dict is not None:  # skip None types
+                d[key] = new_dict
     return d
 
 

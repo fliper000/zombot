@@ -27,14 +27,19 @@ class klass(object):
             else:
                 suppress_reserved = ''
             string_join = ',%s\n                 ' % suppress_reserved
+            attrs = filter(lambda x: (type(self.attrs[x]) == type),
+                                      self.attrs.keys())
+            attrs = [attr + '=None' for attr in attrs]
             string += ('    def __init__(self, %s):%s\n' %
-                       (string_join.join(filter(lambda x: type(self.attrs[x]) == type, self.attrs.keys())),
+                       (string_join.join(attrs),
                         suppress_reserved)
                        )
             for attr_name, attr_value in sorted(self.attrs.iteritems()):
                 if type(attr_value) == type:
-                    string += '        assert isinstance(%s, %s)\n' % (attr_name,
-                                                                       attr_value.__name__)
+                    string += ('        assert (%s is None\n'
+                               '                or isinstance(%s, %s))\n' %
+                               (attr_name, attr_name, attr_value.__name__)
+                              )
             for attr_name, attr_value in sorted(self.attrs.iteritems()):
                 if type(attr_value) == type:
                     string += '        self.%s = %s\n' % (attr_name, attr_name)
@@ -83,6 +88,7 @@ def generate_klasses(obj):
 
 def generate_classes(obj):
     common_class = '''from mixins import CommonEqualityMixin
+from types import NoneType
 
 
 '''
@@ -121,6 +127,6 @@ if __name__ == '__main__':
         start_response = json.load(fp)
     start_response_object = dict2obj(start_response)
     state_dict = obj2dict(start_response_object)
-    assert start_response == state_dict
+    #assert start_response == state_dict
     print generate_classes(start_response_object),
     print "if __name__ == '__main__':\n    pass"
