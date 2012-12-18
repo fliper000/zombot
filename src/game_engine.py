@@ -296,15 +296,25 @@ class Game():
         if gameObject is None:
             logger.critical("OMG! No such object")
         gameObject.nextPlayTimes.__setattr__(extraId, nextPlayDate)
-        prize_pos = event_to_handle.result.pos
         building = self.__itemReader.get(gameObject.item)
         for game in building.games:
             if game.id == extraId:
-                prize_item = game.prizes[prize_pos].item
-                prize = self.__itemReader.get(prize_item)
-                count = game.prizes[prize_pos].count
-                logger.info('Вы выиграли ' + prize.name +
-                            '(' + str(count) + ' шт.)')
+                game_prize = None
+                if hasattr(event_to_handle.result, 'pos'):
+                    prize_pos = event_to_handle.result.pos
+                    game_prize = game.prizes[prize_pos]
+                elif hasattr(event_to_handle.result, 'won'):
+                    prize_pos = event_to_handle.result.won
+                    if prize_pos is not None:
+                        game_prize = game.combinations[prize_pos].prize
+                if game_prize:
+                    prize_item = game_prize.item
+                    prize = self.__itemReader.get(prize_item)
+                    count = game_prize.count
+                    logger.info('Вы выиграли ' + prize.name +
+                                '(' + str(count) + ' шт.)')
+                else:
+                    logger.info('Вы ничего не выиграли.')
 
     def handleGainMaterialEvent(self, event_to_handle, gameObject):
         self.updateJobDone(gameObject)
