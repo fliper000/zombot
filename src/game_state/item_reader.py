@@ -32,17 +32,19 @@ class GameItemReader():
             else:
                 self.content_dict[content['id']] = content
 
-    def getTime(self, filename):
+    def _getModificationTime(self, filename):
         try:
             return time.localtime(os.path.getmtime(filename))
         except OSError:  # no such file
             return None
 
     def download(self, filename):
-        last_modified_time = self.getTime(filename)
+        last_modified_time = self._getModificationTime(filename)
         url = 'http://java.shadowlands.ru/zombievk/items'
-        data = Connection(url).getChangedDocument(data={'lang': 'ru'},
-                                                  last_client_time=last_modified_time)
+        data = Connection(url).getChangedDocument(
+            data={'lang': 'ru'},
+            last_client_time=last_modified_time
+        )
         with open(filename, 'w') as f:
             f.write(data.encode('utf-8'))
 

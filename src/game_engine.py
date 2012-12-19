@@ -20,16 +20,19 @@ logger = logging.getLogger(__name__)
 class Game():
 
     def __init__(self, connection, user_id, auth_key, access_token,
-                  user_prompt):
+                  user_prompt, game_item_reader=None):
         self.__connection = connection
         self.__access_token = access_token
         self.__session = Session(user_id, auth_key,
                                  client_version=self._getClientVersion()
                                  )
         self._createFactory()
-        self.__itemReader = GameItemReader()
-        self.__itemReader.download('items.txt')
-        self.__itemReader.read('items.txt')
+        if game_item_reader is None:
+            self.__itemReader = GameItemReader()
+            self.__itemReader.download('items.txt')
+            self.__itemReader.read('items.txt')
+        else:
+            self.__itemReader = game_item_reader
         self.__user_prompt = user_prompt
         self.__selected_seed = None
         self.__events_to_handle = []
@@ -159,7 +162,7 @@ class Game():
                                             'objId': wood_grave.target.id})
                         self.removeObjectById(wood_grave.target.id)
                         self.appendObject(new_obj)
-                        logger.info("'%s' превращён в '%s'" %
+                        logger.info(u"'%s' превращён в '%s'" %
                                     (target_item.name, box_item.name))
                 delattr(wood_grave, 'jobEndTime')
         else:
@@ -315,8 +318,8 @@ class Game():
                     prize_item = game_prize.item
                     prize = self.__itemReader.get(prize_item)
                     count = game_prize.count
-                    logger.info('Вы выиграли ' + prize.name +
-                                '(' + str(count) + ' шт.)')
+                    logger.info(u'Вы выиграли ' + prize.name +
+                                u'(' + str(count) + u' шт.)')
                 else:
                     logger.info('Вы ничего не выиграли.')
 
@@ -324,7 +327,7 @@ class Game():
         self.updateJobDone(gameObject)
         if event_to_handle.action == 'start':
             logger.info("Начата работа" + '. jobEndTime:'
-                        + event_to_handle.jobEndTime +
+                        + str(event_to_handle.jobEndTime) +
                         ', current time:' + str(self._getCurrentClientTime()))
             gameObject.target = dict2obj({'id': event_to_handle.targetId})
             gameObject.jobStartTime = event_to_handle.jobStartTime

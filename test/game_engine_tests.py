@@ -3,25 +3,39 @@ import game_engine
 from mock import Mock, MagicMock
 import message_factory
 from message_factory import calcCRC
-from game_state.game_types import GameTIME, GameInfo, GameSTART, GameWoodTree
+from game_state.game_types import GameTIME, GameInfo, GameSTART
 from game_state.game_event import dict2obj, obj2dict
 import logging
+from game_state.item_reader import GameItemReader
 
 
 class Test(unittest.TestCase):
 
-    def createGame(self):
-        connection = Mock()
-        game = game_engine.Game(connection, user_id='user_id',
-                                auth_key='auth_key', access_token=None,
-                                user_prompt=Mock())
-        game.send = MagicMock()
+    @classmethod
+    def setUpClass(cls):
+        cls.game_item_reader = GameItemReader()
+        cls.game_item_reader.read('items.txt')
+
+    def createGame(self, connection=None, current_time=1000):
+        self.USER_ID = 100000
+        self.AUTH_KEY = 'AUTH_KEY'
+
+        if connection is None:
+            connection = Mock()
+            connection.sendRequest = Mock(return_value='{}')
+        game_item_reader = Test.game_item_reader
+        game = game_engine.Game(connection, user_id=self.USER_ID,
+                                auth_key=self.AUTH_KEY, access_token=None,
+                                user_prompt=Mock(),
+                                game_item_reader=game_item_reader)
+        game._getCurrentClientTime = Mock(return_value=current_time)
         return game
 
     def testGetTimeShouldCallSend(self):
         BASE_REQUEST_ID = 49
         # setup
         game = self.createGame()
+        game.send = MagicMock()
         game._getInitialId = lambda: BASE_REQUEST_ID
 
         # exercise
@@ -44,9 +58,7 @@ class Test(unittest.TestCase):
         request_string = (message_factory.calcCRC(request_string) +
                          '$' + request_string)
         connection.sendRequest = Mock(return_value=request_string)
-        game = game_engine.Game(connection, user_id='user_id',
-                                auth_key='auth_key', access_token=None,
-                                user_prompt=Mock())
+        game = self.createGame(connection=connection)
         game._getInitialId = lambda: BASE_REQUEST_ID
 
         # exercise
@@ -62,10 +74,7 @@ class Test(unittest.TestCase):
         SERVER_TIME = 1000000000L
         SESSION_KEY = 'session_key'
         # setup
-        connection = Mock()
-        game = game_engine.Game(connection, user_id='user_id',
-                                auth_key='auth_key', access_token=None,
-                                user_prompt=Mock())
+        game = self.createGame()
         game._getUserInfo = lambda: USER_INFO
         game._getClientTime = lambda: CLIENT_TIME
         game._createFactory(SERVER_TIME)
@@ -87,18 +96,13 @@ class Test(unittest.TestCase):
 
     def testSendShouldCallSendRequestAndReturnResponseDict(self):
         BASE_REQUEST_ID = 49
-        USER_ID = 100000
-        AUTH_KEY = 'AUTH_KEY'
         CLIENT_VERSION = 10000
 
         # setup
         game_server_connection = Mock()
         game_server_connection.sendRequest = Mock(return_value=calcCRC('{}')
                                                   + "${}")
-        game = game_engine.Game(game_server_connection,
-                                user_id=USER_ID,
-                                auth_key=AUTH_KEY, access_token=None,
-                                user_prompt=Mock())
+        game = self.createGame(game_server_connection)
         game._getInitialId = lambda: BASE_REQUEST_ID
         game._createFactory(BASE_REQUEST_ID)
         game._setClientVersion(CLIENT_VERSION)
@@ -112,7 +116,7 @@ class Test(unittest.TestCase):
              '{"auth":"ce50b18d6504622d8e04615316fd2151",'
              '"type":"TIME",'
              '"clientVersion":' + str(CLIENT_VERSION) + ','
-             '"user":"' + str(USER_ID) + '",'
+             '"user":"' + str(self.USER_ID) + '",'
              '"id":' + str(BASE_REQUEST_ID) + '}',
              'crc': 'c4acfa714d16e562240d42dfbfcc858e'}
             )
@@ -173,8 +177,7 @@ class Test(unittest.TestCase):
 
     def testHandleGainMaterialEventAddsMaterial(self):
         # setup
-        game = self.createGame()
-        game._getCurrentClientTime = Mock(return_value=2458641)
+        game = self.createGame(current_time=2458641)
         TARGET_ID = -190
         location = dict2obj(
                 {"gameObjects": [{
@@ -248,8 +251,3 @@ class Test(unittest.TestCase):
                                     'objId': TARGET_ID,
                                     'type': u'pickupBox'}],
                          obj2dict(location.gameObjects))
-
-
-#import sys
-#sys.argv = ['', 'Test.testHandleGameResultEvent']
-#unittest.main()

@@ -44,7 +44,8 @@ class klass(object):
                 if type(attr_value) == type:
                     string += '        self.%s = %s\n' % (attr_name, attr_name)
                 else:
-                    string += '        self.%s = \'%s\'\n' % (attr_name, attr_value)
+                    string += '        self.%s = \'%s\'\n' % (attr_name,
+                                                              attr_value)
         string += '\n\n'
         return string
 
