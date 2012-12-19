@@ -8,11 +8,12 @@ import time
 from game_state.item_reader import GameItemReader, GameSeedReader
 from game_state.game_event import dict2obj, obj2dict
 from game_state.game_types import GameEVT, GameTIME, GameSTART,\
-    GameApplyGiftEvent, GameGift, GameInfo, GameDigItem, GameSlag, \
+    GameInfo, GameDigItem, GameSlag, \
     GamePlant, GamePickItem, GameBuyItem, GamePickPickup, GameFruitTree,\
     GameFertilizePlant, GameBuilding, GameNextPlayTimes, GamePlayGame,\
     GameWoodGrave, GameStartGainMaterial, GameWoodGraveDouble
 import pprint
+from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +68,8 @@ class Game():
                 logger.info(obj2dict(gameObject))
 
         self.select_plant_seed()
+
+        self.create_all_actors()
 
         # TODO send getMissions
         # TODO handle getMissions response
@@ -169,7 +172,7 @@ class Game():
             logger.info("There's no jobEndTime")
 
     def automaticActions(self):
-        self.receiveAllGifts()
+        self.perform_all_actions()
         self.harvestAndDigAll()
         self.seedAll()
         self.rouletteRoll()
@@ -245,40 +248,25 @@ class Game():
                 objects.append(game_object)
         return objects
 
-    def receiveAllGifts(self):
-        gifts = self.__game_state.gifts
-        if len(gifts) > 0:
-            logger.info("receiving all gifts:" + str(len(gifts)))
-        for gift in list(gifts):
-            self.receiveGift(gift)
+    def create_gift_receiver(self):
+        receive_options = {'with_messages': self.__receive_gifts_with_messages,
+                           'non_free': self.__receive_non_free_gifts}
+        events_sender = self
+        receiver = GiftReceiverBot(self.__itemReader, self.__game_state,
+                                events_sender, receive_options)
+        return receiver
 
-    def receiveGift(self, gift):
-        item = self.__itemReader.get(gift.item)
-        # logger.info(obj2dict(gift))
-        gift_name = u"подарок '" + item.name + u"'"
-        with_message = hasattr(gift, 'msg') and gift.msg != ''
-        moved = hasattr(item, 'moved') and item.moved == True
-        free = hasattr(gift, 'free') and gift.free
-        if with_message:
-            gift_name += u" с сообщением: '" + gift.msg + u"'"
-        if moved:
-            logger.info(gift_name + u"' нужно поместить")
-        if free:
-            gift_name = u'бесплатный ' + gift_name
-        gift_name += u" от " + gift.user
-        logger.info(u'Получен ' + gift_name)
-        if not moved:
-            if not with_message or self.__receive_gifts_with_messages:
-                if free or self.__receive_non_free_gifts:
-                    logger.info(u"Принимаю " + gift_name)
-                    apply_gift_event = GameApplyGiftEvent(GameGift(gift.id))
-                    self.sendGameEvents([apply_gift_event])
-        self.removeGiftFromGameState(gift)
+    def create_all_actors(self):
+        self.__actors = [
+            self.create_gift_receiver()
+        ]
 
-    def removeGiftFromGameState(self, gift):
-        for current_gift in list(self.__game_state.gifts):
-            if gift.id == current_gift.id:
-                self.__game_state.gifts.remove(current_gift)
+    def perform_all_actions(self):
+        '''
+        Assumes that create_all_actors is called before
+        '''
+        for actor in self.__actors:
+            actor.perform_action()
 
     def sendGameEvents(self, events=[]):
         '''
@@ -337,9 +325,7 @@ class Game():
 
     def handleEvent(self, event_to_handle):
         if event_to_handle.action == 'addGift':
-            logger.info(u"Получен подарок.")
-            gift = event_to_handle.gift
-            self.receiveGift(gift)
+            AddGiftEventHandler(self.__game_state).handle(event_to_handle)
         elif event_to_handle.action == 'add':
             if event_to_handle.type == 'pickup':
                 self.pickPickups(event_to_handle.pickups)
