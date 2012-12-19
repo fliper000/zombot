@@ -142,6 +142,8 @@ class Game():
 
     def updateJobDone(self, wood_grave):
         if hasattr(wood_grave, 'jobEndTime'):
+            logger.info('jobEndTime:' + wood_grave.jobEndTime +
+                        ', current time:' + str(self._getCurrentClientTime()))
             if int(wood_grave.jobEndTime) < self._getCurrentClientTime():
                 if hasattr(wood_grave, 'target'):
                     target = self.getObjectById(wood_grave.target.id)
@@ -160,6 +162,8 @@ class Game():
                         logger.info("'%s' превращён в '%s'" %
                                     (target_item.name, box_item.name))
                 delattr(wood_grave, 'jobEndTime')
+        else:
+            logger.info("There's no jobEndTime")
 
     def automaticActions(self):
         self.receiveAllGifts()
@@ -319,7 +323,9 @@ class Game():
     def handleGainMaterialEvent(self, event_to_handle, gameObject):
         self.updateJobDone(gameObject)
         if event_to_handle.action == 'start':
-            logger.info("Начата работа")
+            logger.info("Начата работа" + '. jobEndTime:'
+                        + event_to_handle.jobEndTime +
+                        ', current time:' + str(self._getCurrentClientTime()))
             gameObject.target = dict2obj({'id': event_to_handle.targetId})
             gameObject.jobStartTime = event_to_handle.jobStartTime
             gameObject.jobEndTime = event_to_handle.jobEndTime
