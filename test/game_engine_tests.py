@@ -7,6 +7,7 @@ from game_state.game_types import GameTIME, GameInfo, GameSTART
 from game_state.game_event import dict2obj, obj2dict
 import logging
 from game_state.item_reader import GameItemReader
+from game_engine import GameLocation
 
 
 class Test(unittest.TestCase):
@@ -140,7 +141,8 @@ class Test(unittest.TestCase):
                              u'x': 62L,
                              u'type': u'building',
                              u'id': 278L})
-        game.getObjectById = Mock(return_value=building)
+        game.get_game_loc = Mock()
+        game.get_game_loc().get_object_by_id = Mock(return_value=building)
 
         # exercise
         game.handleGameResultEvent(event_to_handle)
@@ -189,7 +191,8 @@ class Test(unittest.TestCase):
                  "materialCount":35,
                  "gainStarted": False}]
                 })
-        game.getGameLocation = Mock(return_value=location)
+        game_location = GameLocation(Test.game_item_reader, location)
+        game.get_game_loc = Mock(return_value=game_location)
         JOB_END_TIME = u'2458640'
         event_to_handle = dict2obj({u'action': u'start',
                                     u'doneCounter': 181L,
@@ -229,7 +232,8 @@ class Test(unittest.TestCase):
                  "materialCount":1,
                  "gainStarted": False}]
                 })
-        game.getGameLocation = Mock(return_value=location)
+        game_location = GameLocation(Test.game_item_reader, location)
+        game.get_game_loc = Mock(return_value=game_location)
         JOB_END_TIME = u'2458640'
         event_to_handle = dict2obj({u'action': u'stop',
                                     u'objId': 267L,
