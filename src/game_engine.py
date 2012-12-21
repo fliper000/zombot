@@ -39,7 +39,7 @@ class GameLocation():
     def get_all_objects_by_type(self, object_type):
         objects = []
         for game_object in self.get_game_objects():
-            item = self.__itemReader.get(game_object.item)
+            item = self.__item_reader.get(game_object.item)
             if game_object.type == object_type or item.type == object_type:
                 objects.append(game_object)
         return objects
