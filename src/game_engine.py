@@ -408,13 +408,20 @@ class Game():
     def startGame(self, server_time, session_key):
         self.__factory.setRequestId(server_time)
         self.__factory.setSessionKey(session_key)
+        client_time = self._getClientTime()
+        start_time = time.time()
         command = GameSTART(lang=u'en', info=self._getUserInfo(),
                       ad=u'user_apps', serverTime=server_time,
-                      clientTime=self._getClientTime())
+                      clientTime=client_time)
+        sending_time = (time.time() - start_time) * 1000
+        self._add_sending_time(sending_time)
         return self.send(command)
 
     def _getSessionKey(self):
         return self.__factory._getSessionKey()
+
+    def _add_sending_time(self, sending_time):
+        self._clientTime += sending_time
 
     def _getClientTime(self):
         random.seed()
