@@ -17,7 +17,8 @@ class Test(unittest.TestCase):
         cls.game_item_reader = GameItemReader()
         cls.game_item_reader.read('items.txt')
 
-    def createGame(self, connection=None, current_time=1000):
+    def createGame(self, connection=None, current_time=1000,
+                    client_time=1000):
         self.USER_ID = 100000
         self.AUTH_KEY = 'AUTH_KEY'
 
@@ -30,6 +31,8 @@ class Test(unittest.TestCase):
                                 user_prompt=Mock(),
                                 game_item_reader=game_item_reader)
         game._getCurrentClientTime = Mock(return_value=current_time)
+        game._getClientTime = lambda: client_time
+        game._add_sending_time = Mock()
         return game
 
     def testGetTimeShouldCallSend(self):
@@ -75,9 +78,8 @@ class Test(unittest.TestCase):
         SERVER_TIME = 1000000000L
         SESSION_KEY = 'session_key'
         # setup
-        game = self.createGame()
+        game = self.createGame(client_time=CLIENT_TIME)
         game._getUserInfo = lambda: USER_INFO
-        game._getClientTime = lambda: CLIENT_TIME
         game._createFactory(SERVER_TIME)
         game.send = Mock()
 
