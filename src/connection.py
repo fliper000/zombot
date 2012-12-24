@@ -44,8 +44,9 @@ class Connection(object):
             data = urllib.urlencode(self.encode_dict(data))
         logger.info('request: ' + self.__url + ' ' + str(data))
         try:
-            response = opener.open(self.__url, data)
-        except urllib2.HTTPError:
+            response = opener.open(self.__url, data, timeout=2)
+        except urllib2.HTTPError, e:
+            logger.error('HTTP error:' + str(e.message))
             response = None
         return response
 
@@ -60,6 +61,7 @@ class Connection(object):
             else:
                 return content
         else:
+            logger.info('response is None!')
             return None
 
     def __readContent(self, response):
