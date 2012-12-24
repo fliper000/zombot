@@ -30,8 +30,8 @@ class Test(unittest.TestCase):
                                 auth_key=self.AUTH_KEY, access_token=None,
                                 user_prompt=Mock(),
                                 game_item_reader=game_item_reader)
-        game._getCurrentClientTime = Mock(return_value=current_time)
-        game._getClientTime = lambda: client_time
+        game._get_timer = Mock()
+        game._get_timer()._get_client_time = Mock(return_value=client_time)
         game._add_sending_time = Mock()
         return game
 

@@ -61,6 +61,33 @@ class GameLocation():
                 self.get_game_objects().remove(game_object)
 
 
+class GameTimer(object):
+
+    def __init__(self):
+        self._client_time = 0
+        self._start_time = 0
+
+    def _get_client_time(self):
+        random.seed()
+        self._client_time = long(random.randrange(2800, 4000))
+        self._start_time = time.time()
+        return self._client_time
+
+    def _get_current_client_time(self):
+        '''
+        returns the current in-game time (in milliseconds)
+        '''
+        currentTime = self._client_time
+        currentTime += (time.time() - self._start_time) * 1000
+        return currentTime
+
+    def _add_sending_time(self, sending_time):
+        self._client_time += sending_time
+
+    def has_elapsed(self, time):
+        return int(time) <= self._get_current_client_time()
+
+
 class Game():
 
     def __init__(self, connection, user_id, auth_key, access_token,
@@ -82,6 +109,7 @@ class Game():
         self.__events_to_handle = []
         self.__receive_gifts_with_messages = False
         self.__receive_non_free_gifts = False
+        self.__timer = GameTimer()
 
     def select_plant_seed(self):
         level = self.__game_state.level
@@ -152,7 +180,7 @@ class Game():
                     next_play = int(next_play_times[game_id])
                 if (
                         next_play and
-                        next_play <= self._getCurrentClientTime() and
+                        self._get_timer().has_elapsed(next_play) and
                         play_cost is None
                 ):
                     logger.info(
@@ -185,8 +213,9 @@ class Game():
     def updateJobDone(self, wood_grave):
         if hasattr(wood_grave, 'jobEndTime'):
             logger.info('jobEndTime:' + wood_grave.jobEndTime +
-                        ', current time:' + str(self._getCurrentClientTime()))
-            if int(wood_grave.jobEndTime) < self._getCurrentClientTime():
+                        ', current time:' +
+                        str(self._get_timer()._get_current_client_time()))
+            if (self._get_timer().has_elapsed(wood_grave.jobEndTime)):
                 if hasattr(wood_grave, 'target'):
                     target_id = wood_grave.target.id
                     target = self.get_game_loc().get_object_by_id(target_id)
@@ -223,7 +252,7 @@ class Game():
             self.sendGameEvents([pick_event])
 
     def pickHarvest(self, harvestItem):
-        if int(harvestItem.jobFinishTime) < self._getCurrentClientTime():
+        if (self._get_timer().has_elapsed(harvestItem.jobFinishTime)):
             item = self.__itemReader.get(harvestItem.item)
             logger.info(u"Собираем '" + item.name + "' " +
                         str(harvestItem.id) +
@@ -340,7 +369,8 @@ class Game():
         if event_to_handle.action == 'start':
             logger.info("Начата работа" + '. jobEndTime:'
                         + str(event_to_handle.jobEndTime) +
-                        ', current time:' + str(self._getCurrentClientTime()))
+                        ', current time:' +
+                        str(self._get_timer()._get_current_client_time()))
             gameObject.target = dict2obj({'id': event_to_handle.targetId})
             gameObject.jobStartTime = event_to_handle.jobStartTime
             gameObject.jobEndTime = event_to_handle.jobEndTime
@@ -408,34 +438,20 @@ class Game():
     def startGame(self, server_time, session_key):
         self.__factory.setRequestId(server_time)
         self.__factory.setSessionKey(session_key)
-        client_time = self._getClientTime()
+        client_time = self._get_timer()._get_client_time()
         start_time = time.time()
         command = GameSTART(lang=u'en', info=self._getUserInfo(),
                       ad=u'user_apps', serverTime=server_time,
                       clientTime=client_time)
         sending_time = (time.time() - start_time) * 1000
-        self._add_sending_time(sending_time)
+        self._get_timer()._add_sending_time(sending_time)
         return self.send(command)
 
     def _getSessionKey(self):
         return self.__factory._getSessionKey()
 
-    def _add_sending_time(self, sending_time):
-        self._clientTime += sending_time
-
-    def _getClientTime(self):
-        random.seed()
-        self._clientTime = long(random.randrange(2800, 4000))
-        self._startTime = time.time()
-        return self._clientTime
-
-    def _getCurrentClientTime(self):
-        '''
-        returns the current in-game time (in milliseconds)
-        '''
-        currentTime = self._clientTime
-        currentTime += (time.time() - self._startTime) * 1000
-        return currentTime
+    def _get_timer(self):
+        return self.__timer
 
     def _getClientVersion(self):
         return long(1352868088)
