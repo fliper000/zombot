@@ -28,4 +28,6 @@ def initialize (project):
     
     project.set_property("coverage_break_build", False)
     project.set_property("pep8_break_build", True)
+    
+    project.set_property("flake8_verbose_output", True)
 
