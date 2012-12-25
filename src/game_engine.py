@@ -14,6 +14,7 @@ from game_state.game_types import GameEVT, GameTIME, GameSTART,\
     GameWoodGrave, GameStartGainMaterial, GameWoodGraveDouble
 import pprint
 from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
+from game_actors_and_handlers.plants import HarvesterBot
 
 logger = logging.getLogger(__name__)
 
@@ -239,7 +240,6 @@ class Game():
 
     def automaticActions(self):
         self.perform_all_actions()
-        self.harvestAndDigAll()
         self.seedAll()
         self.rouletteRoll()
         self.pickAllWood()
@@ -250,44 +250,6 @@ class Game():
         for pickup in pickups:
             pick_event = GamePickPickup([pickup])
             self.sendGameEvents([pick_event])
-
-    def pickHarvest(self, harvestItem):
-        if (self._get_timer().has_elapsed(harvestItem.jobFinishTime)):
-            item = self.__itemReader.get(harvestItem.item)
-            logger.info(u"Собираем '" + item.name + "' " +
-                        str(harvestItem.id) +
-                        u" по координатам (" +
-                        str(harvestItem.x) + u", " + str(harvestItem.y) + u")")
-            pick_event = GamePickItem(objId=harvestItem.id)
-            self.sendGameEvents([pick_event])
-            if harvestItem.type == GamePlant.type:
-                # convert plant to slag
-                harvestItem.type = GameSlag(0L, 0L, 0L).type
-                harvestItem.item = GameSlag(0L, 0L, 0L).item
-            elif harvestItem.type == GameFruitTree.type:
-                harvestItem.fruitingCount -= 1
-                if harvestItem.fruitingCount == 0:
-                    # convert tree to pick item
-                    harvestItem.type = GamePickItem.type
-
-    def harvestAndDigAll(self):
-        plants = self.get_game_loc().get_all_objects_by_type(GamePlant.type)
-        trees = self.get_game_loc().get_all_objects_by_type(GameFruitTree.type)
-        harvestItems = plants + trees
-        for harvestItem in list(harvestItems):
-            self.pickHarvest(harvestItem)
-
-        slags = self.get_game_loc().get_all_objects_by_type(GameSlag.type)
-        for slag in list(slags):
-            item = self.__itemReader.get(slag.item)
-            logger.info(u"Копаем '" + item.name + "' " + str(slag.id) +
-                        u" по координатам (" +
-                        str(slag.x) + ", " + str(slag.y) + u")")
-            dig_event = GameDigItem(slag.id)
-            self.sendGameEvents([dig_event])
-            # convert slag to ground
-            slag.type = 'base'
-            slag.item = '@GROUND'
 
     def seedAll(self):
         grounds = self.get_game_loc().get_all_objects_by_type('ground')
@@ -314,9 +276,16 @@ class Game():
                                 events_sender, receive_options)
         return receiver
 
+    def create_harvester(self):
+        events_sender = self
+        harvester = HarvesterBot(self.__itemReader, self.get_game_loc(),
+                                 events_sender, self._get_timer())
+        return harvester
+
     def create_all_actors(self):
         self.__actors = [
-            self.create_gift_receiver()
+            self.create_gift_receiver(),
+            self.create_harvester()
         ]
 
     def perform_all_actions(self):
