@@ -8,13 +8,12 @@ import time
 from game_state.item_reader import GameItemReader, GameSeedReader
 from game_state.game_event import dict2obj, obj2dict
 from game_state.game_types import GameEVT, GameTIME, GameSTART,\
-    GameInfo, GameDigItem, GameSlag, \
-    GamePlant, GamePickItem, GameBuyItem, GamePickPickup, GameFruitTree,\
+    GameInfo, GamePickItem, GameBuyItem, GamePickPickup, \
     GameFertilizePlant, GameBuilding, GamePlayGame,\
     GameWoodGrave, GameStartGainMaterial, GameWoodGraveDouble
 import pprint
 from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
-from game_actors_and_handlers.plants import HarvesterBot
+from game_actors_and_handlers.plants import HarvesterBot, SeederBot
 
 logger = logging.getLogger(__name__)
 
@@ -240,7 +239,6 @@ class Game():
 
     def automaticActions(self):
         self.perform_all_actions()
-        self.seedAll()
         self.rouletteRoll()
         self.pickAllWood()
 
@@ -250,23 +248,6 @@ class Game():
         for pickup in pickups:
             pick_event = GamePickPickup([pickup])
             self.sendGameEvents([pick_event])
-
-    def seedAll(self):
-        grounds = self.get_game_loc().get_all_objects_by_type('ground')
-        for ground in list(grounds):
-            item = self.__itemReader.get(ground.item)
-            seed_item = self.__itemReader.get(self.__selected_seed)
-            logger.info(u"Сеем '" + seed_item.name +
-                        u"' на '" + item.name + u"' " +
-                        str(ground.id) +
-                        u" по координатам (" +
-                        str(ground.x) + u", " + str(ground.y) + u")")
-            buy_event = GameBuyItem(unicode(seed_item.id),
-                                ground.id,
-                                ground.y, ground.x)
-            self.sendGameEvents([buy_event])
-            ground.type = u'plant'
-            ground.item = unicode(seed_item.id)
 
     def create_gift_receiver(self):
         receive_options = {'with_messages': self.__receive_gifts_with_messages,
@@ -282,10 +263,17 @@ class Game():
                                  events_sender, self._get_timer())
         return harvester
 
+    def create_seeder(self):
+        events_sender = self
+        harvester = SeederBot(self.__itemReader, self.get_game_loc(),
+                                 events_sender, self.__selected_seed)
+        return harvester
+
     def create_all_actors(self):
         self.__actors = [
             self.create_gift_receiver(),
-            self.create_harvester()
+            self.create_harvester(),
+            self.create_seeder()
         ]
 
     def perform_all_actions(self):
