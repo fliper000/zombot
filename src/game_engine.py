@@ -9,11 +9,12 @@ from game_state.item_reader import GameItemReader, GameSeedReader
 from game_state.game_event import dict2obj, obj2dict
 from game_state.game_types import GameEVT, GameTIME, GameSTART,\
     GameInfo, GamePickItem, GamePickPickup, \
-    GameFertilizePlant, GameBuilding, GamePlayGame,\
+    GameFertilizePlant, GamePlayGame,\
     GameWoodGrave, GameStartGainMaterial, GameWoodGraveDouble
 import pprint
 from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
 from game_actors_and_handlers.plants import HarvesterBot, SeederBot
+from game_actors_and_handlers.roulettes import RouletteRoller
 
 logger = logging.getLogger(__name__)
 
@@ -164,34 +165,6 @@ class Game():
             self.automaticActions()
             time.sleep(30)
 
-    def rouletteRoll(self):
-        buildings = self.get_game_loc().get_all_objects_by_type(
-                        GameBuilding.type)
-        for building in list(buildings):
-            building_item = self.__itemReader.get(building.item)
-            for game in building_item.games:
-                game_id = game.id
-                play_cost = None
-                if hasattr(game, 'playCost'):
-                    play_cost = game.playCost
-                next_play = None
-                next_play_times = building.nextPlayTimes.__dict__
-                if game_id in next_play_times:
-                    next_play = int(next_play_times[game_id])
-                if (
-                        next_play and
-                        self._get_timer().has_elapsed(next_play) and
-                        play_cost is None
-                ):
-                    logger.info(
-                        u"Крутим рулетку в '" +
-                        building_item.name + "' " +
-                        str(building.id) +
-                        u" по координатам (" +
-                        str(building.x) + u", " + str(building.y) + u")")
-                    roll = GamePlayGame(building.id, game_id)
-                    self.sendGameEvents([roll])
-
     def pickMaterial(self, wood_grave, material_id):
         pick_item = GamePickItem(itemId=material_id, objId=wood_grave.id)
         self.sendGameEvents([pick_item])
@@ -239,7 +212,6 @@ class Game():
 
     def automaticActions(self):
         self.perform_all_actions()
-        self.rouletteRoll()
         self.pickAllWood()
 
     def pickPickups(self, pickups):
@@ -269,11 +241,18 @@ class Game():
                                  events_sender, self.__selected_seed)
         return harvester
 
+    def create_roller(self):
+        events_sender = self
+        roller = RouletteRoller(self.__itemReader, self.get_game_loc(),
+                                 events_sender, self._get_timer())
+        return roller
+
     def create_all_actors(self):
         self.__actors = [
             self.create_gift_receiver(),
             self.create_harvester(),
-            self.create_seeder()
+            self.create_seeder(),
+            self.create_roller(),
         ]
 
     def perform_all_actions(self):
