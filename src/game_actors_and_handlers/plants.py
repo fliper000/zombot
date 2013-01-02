@@ -49,8 +49,11 @@ class HarvesterBot():
             elif harvestItem.type == GameFruitTree.type:
                 harvestItem.fruitingCount -= 1
                 if harvestItem.fruitingCount == 0:
+                    # remove fruit tree
+                    self.__game_location.remove_object_by_id(harvestItem.id)
+                    # harvestItem.type = GamePickItem.type
+                    # TODO convert to pickup box
                     # convert tree to pick item
-                    harvestItem.type = GamePickItem.type
 
 
 class SeederBot(object):

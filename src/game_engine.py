@@ -8,7 +8,7 @@ import time
 from game_state.item_reader import GameItemReader, GameSeedReader
 from game_state.game_event import dict2obj, obj2dict
 from game_state.game_types import GameEVT, GameTIME, GameSTART,\
-    GameInfo, GamePickItem, GameBuyItem, GamePickPickup, \
+    GameInfo, GamePickItem, GamePickPickup, \
     GameFertilizePlant, GameBuilding, GamePlayGame,\
     GameWoodGrave, GameStartGainMaterial, GameWoodGraveDouble
 import pprint
@@ -228,7 +228,7 @@ class Game():
                         box_item = self.__itemReader.get(target_item.box)
                         new_obj = dict2obj({'item': '@' + box_item.id,
                                             'type': box_item.type,
-                                            'objId': target_id})
+                                            'id': target_id})
                         self.get_game_loc().remove_object_by_id(target_id)
                         self.get_game_loc().append_object(new_obj)
                         logger.info(u"'%s' превращён в '%s'" %
