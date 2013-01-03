@@ -8,14 +8,18 @@ import time
 from game_state.item_reader import GameItemReader, GameSeedReader
 from game_state.game_event import dict2obj, obj2dict
 from game_state.game_types import GameEVT, GameTIME, GameSTART,\
-    GameInfo, GamePickItem, GamePickPickup, \
+    GameInfo, \
     GameFertilizePlant, GamePlayGame,\
-    GameWoodGrave, GameStartGainMaterial, GameWoodGraveDouble
+    GameStartGainMaterial
 import pprint
 from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
-from game_actors_and_handlers.plants import HarvesterBot, SeederBot
-from game_actors_and_handlers.roulettes import RouletteRoller
-from game_actors_and_handlers.wood_graves import WoodPicker
+from game_actors_and_handlers.plants import HarvesterBot, SeederBot,\
+    PlantEventHandler
+from game_actors_and_handlers.roulettes import RouletteRoller,\
+    GameResultHandler
+from game_actors_and_handlers.wood_graves import WoodPicker,\
+    GainMaterialEventHandler
+from game_actors_and_handlers.pickups import Pickuper
 
 logger = logging.getLogger(__name__)
 
@@ -166,40 +170,6 @@ class Game():
             self.perform_all_actions()
             time.sleep(30)
 
-    def updateJobDone(self, wood_grave):
-        if hasattr(wood_grave, 'jobEndTime'):
-            logger.info('jobEndTime:' + wood_grave.jobEndTime +
-                        ', current time:' +
-                        str(self._get_timer()._get_current_client_time()))
-            if (self._get_timer().has_elapsed(wood_grave.jobEndTime)):
-                if hasattr(wood_grave, 'target'):
-                    target_id = wood_grave.target.id
-                    target = self.get_game_loc().get_object_by_id(target_id)
-                    target.materialCount -= 1
-                    target_item = self.__itemReader.get(target.item)
-                    logger.info("Материал добыт")
-                    wood_grave.materials.append(target_item.material)
-                    if target.materialCount == 0:
-                        logger.info("Ресурсы исчерпаны!")
-                        box_item = self.__itemReader.get(target_item.box)
-                        new_obj = dict2obj({'item': '@' + box_item.id,
-                                            'type': box_item.type,
-                                            'id': target_id})
-                        self.get_game_loc().remove_object_by_id(target_id)
-                        self.get_game_loc().append_object(new_obj)
-                        logger.info(u"'%s' превращён в '%s'" %
-                                    (target_item.name, box_item.name))
-                delattr(wood_grave, 'jobEndTime')
-        else:
-            logger.info("There's no jobEndTime")
-
-    def pickPickups(self, pickups):
-        if pickups:
-            logger.info(u'Подбираем дроп...')
-        for pickup in pickups:
-            pick_event = GamePickPickup([pickup])
-            self.sendGameEvents([pick_event])
-
     def create_gift_receiver(self):
         receive_options = {'with_messages': self.__receive_gifts_with_messages,
                            'non_free': self.__receive_non_free_gifts}
@@ -258,69 +228,21 @@ class Game():
         game_response = self.send(command)
         self.__events_to_handle += game_response.events
 
-    def handleGameResultEvent(self, event_to_handle):
-        nextPlayDate = event_to_handle.nextPlayDate
-        extraId = event_to_handle.extraId
-        obj_id = event_to_handle.objId
-        gameObject = self.get_game_loc().get_object_by_id(obj_id)
-        if gameObject is None:
-            logger.critical("OMG! No such object")
-        gameObject.nextPlayTimes.__setattr__(extraId, nextPlayDate)
-        building = self.__itemReader.get(gameObject.item)
-        for game in building.games:
-            if game.id == extraId:
-                game_prize = None
-                if hasattr(event_to_handle.result, 'pos'):
-                    prize_pos = event_to_handle.result.pos
-                    game_prize = game.prizes[prize_pos]
-                elif hasattr(event_to_handle.result, 'won'):
-                    prize_pos = event_to_handle.result.won
-                    if prize_pos is not None:
-                        game_prize = game.combinations[prize_pos].prize
-                if game_prize:
-                    prize_item = game_prize.item
-                    prize = self.__itemReader.get(prize_item)
-                    count = game_prize.count
-                    logger.info(u'Вы выиграли ' + prize.name +
-                                u'(' + str(count) + u' шт.)')
-                else:
-                    logger.info('Вы ничего не выиграли.')
-
-    def handleGainMaterialEvent(self, event_to_handle, gameObject):
-        self.updateJobDone(gameObject)
-        if event_to_handle.action == 'start':
-            logger.info("Начата работа" + '. jobEndTime:'
-                        + str(event_to_handle.jobEndTime) +
-                        ', current time:' +
-                        str(self._get_timer()._get_current_client_time()))
-            gameObject.target = dict2obj({'id': event_to_handle.targetId})
-            gameObject.jobStartTime = event_to_handle.jobStartTime
-            gameObject.jobEndTime = event_to_handle.jobEndTime
-        elif event_to_handle.action == 'stop':
-            logger.info("Окончена работа")
-
     def handleEvent(self, event_to_handle):
         if event_to_handle.action == 'addGift':
             AddGiftEventHandler(self.__game_state).handle(event_to_handle)
         elif event_to_handle.action == 'add':
             if event_to_handle.type == 'pickup':
-                self.pickPickups(event_to_handle.pickups)
+                Pickuper(self.__itemReader, self.get_game_loc(), self,
+                         self.__timer).pickPickups(event_to_handle.pickups)
         elif event_to_handle.type == GameFertilizePlant.type:
-            gameObject = self.get_game_loc().get_object_by_id(
-                event_to_handle.objId
-            )
-            if gameObject is None:
-                logger.critical("OMG! No such object")
-            gameObject.fertilized = True
-            gameObject.jobFinishTime = event_to_handle.jobFinishTime
-            gameObject.jobStartTime = event_to_handle.jobStartTime
+            PlantEventHandler(self.get_game_loc()).handle(event_to_handle)
         elif event_to_handle.type == GamePlayGame.type:
-            self.handleGameResultEvent(event_to_handle)
+            GameResultHandler(self.__itemReader,
+                              self.get_game_loc()).handle(event_to_handle)
         elif event_to_handle.type == GameStartGainMaterial.type:
-            gameObject = self.get_game_loc().get_object_by_id(
-                event_to_handle.objId
-            )
-            self.handleGainMaterialEvent(event_to_handle, gameObject)
+            GainMaterialEventHandler(self.__itemReader, self.get_game_loc(),
+                                     self.__timer).handle(event_to_handle)
         else:
             self.logUnknownEvent(event_to_handle)
         self.__events_to_handle.remove(event_to_handle)

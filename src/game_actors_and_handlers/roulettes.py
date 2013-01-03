@@ -40,3 +40,37 @@ class RouletteRoller(object):
                         str(building.x) + u", " + str(building.y) + u")")
                     roll = GamePlayGame(building.id, game_id)
                     self.__events_sender.sendGameEvents([roll])
+
+
+class GameResultHandler(object):
+    def __init__(self, item_reader, game_location):
+        self.__item_reader = item_reader
+        self.__game_location = game_location
+
+    def handler(self, event_to_handle):
+        nextPlayDate = event_to_handle.nextPlayDate
+        extraId = event_to_handle.extraId
+        obj_id = event_to_handle.objId
+        gameObject = self.__game_location.get_object_by_id(obj_id)
+        if gameObject is None:
+            logger.critical("OMG! No such object")
+        gameObject.nextPlayTimes.__setattr__(extraId, nextPlayDate)
+        building = self.__item_reader.get(gameObject.item)
+        for game in building.games:
+            if game.id == extraId:
+                game_prize = None
+                if hasattr(event_to_handle.result, 'pos'):
+                    prize_pos = event_to_handle.result.pos
+                    game_prize = game.prizes[prize_pos]
+                elif hasattr(event_to_handle.result, 'won'):
+                    prize_pos = event_to_handle.result.won
+                    if prize_pos is not None:
+                        game_prize = game.combinations[prize_pos].prize
+                if game_prize:
+                    prize_item = game_prize.item
+                    prize = self.__item_reader.get(prize_item)
+                    count = game_prize.count
+                    logger.info(u'Вы выиграли ' + prize.name +
+                                u'(' + str(count) + u' шт.)')
+                else:
+                    logger.info('Вы ничего не выиграли.')

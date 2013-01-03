@@ -81,3 +81,19 @@ class SeederBot(object):
             self.__events_sender.sendGameEvents([buy_event])
             ground.type = u'plant'
             ground.item = unicode(seed_item.id)
+
+
+class PlantEventHandler(object):
+    def __init__(self, game_location):
+        self.__game_location = game_location
+
+    def handle(self, event_to_handle):
+        gameObject = self.__game_location.get_object_by_id(
+            event_to_handle.objId
+        )
+        if gameObject is None:
+            logger.critical("OMG! No such object")
+        gameObject.fertilized = True
+        logger.info('Plant fertilized')
+        gameObject.jobFinishTime = event_to_handle.jobFinishTime
+        gameObject.jobStartTime = event_to_handle.jobStartTime
