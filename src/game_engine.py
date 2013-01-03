@@ -15,6 +15,7 @@ import pprint
 from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
 from game_actors_and_handlers.plants import HarvesterBot, SeederBot
 from game_actors_and_handlers.roulettes import RouletteRoller
+from game_actors_and_handlers.wood_graves import WoodPicker
 
 logger = logging.getLogger(__name__)
 
@@ -162,26 +163,8 @@ class Game():
                 logger.info("received events: " + str(self.__events_to_handle))
             for event in list(self.__events_to_handle):
                 self.handleEvent(event)
-            self.automaticActions()
+            self.perform_all_actions()
             time.sleep(30)
-
-    def pickMaterial(self, wood_grave, material_id):
-        pick_item = GamePickItem(itemId=material_id, objId=wood_grave.id)
-        self.sendGameEvents([pick_item])
-
-    def pickAllWood(self):
-        wood_graves = self.get_game_loc().get_all_objects_by_type(
-                            GameWoodGrave.type)
-        wood_graves += self.get_game_loc().get_all_objects_by_type(
-                            GameWoodGraveDouble.type)
-        for wood_grave in wood_graves:
-            for material_id in list(wood_grave.materials):
-                material = self.__itemReader.get(material_id)
-                name = material.name
-                logger.info(u'Подбираем ' + name)
-                self.pickMaterial(wood_grave, material.id)
-                # update game state
-                wood_grave.materials.remove(material_id)
 
     def updateJobDone(self, wood_grave):
         if hasattr(wood_grave, 'jobEndTime'):
@@ -209,10 +192,6 @@ class Game():
                 delattr(wood_grave, 'jobEndTime')
         else:
             logger.info("There's no jobEndTime")
-
-    def automaticActions(self):
-        self.perform_all_actions()
-        self.pickAllWood()
 
     def pickPickups(self, pickups):
         if pickups:
@@ -247,12 +226,19 @@ class Game():
                                  events_sender, self._get_timer())
         return roller
 
+    def create_wood_picker(self):
+        events_sender = self
+        picker = WoodPicker(self.__itemReader, self.get_game_loc(),
+                                 events_sender, self._get_timer())
+        return picker
+
     def create_all_actors(self):
         self.__actors = [
             self.create_gift_receiver(),
             self.create_harvester(),
             self.create_seeder(),
             self.create_roller(),
+            self.create_wood_picker(),
         ]
 
     def perform_all_actions(self):
