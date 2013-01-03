@@ -20,6 +20,7 @@ from game_actors_and_handlers.roulettes import RouletteRoller,\
 from game_actors_and_handlers.wood_graves import WoodPicker,\
     GainMaterialEventHandler
 from game_actors_and_handlers.pickups import Pickuper
+from game_state.brains import PlayerBrains
 
 logger = logging.getLogger(__name__)
 
@@ -42,13 +43,16 @@ class GameLocation():
     def get_location_id(self):
         return self.__game_location.id
 
-    def get_all_objects_by_type(self, object_type):
+    def get_all_objects_by_types(self, object_types):
         objects = []
         for game_object in self.get_game_objects():
             item = self.__item_reader.get(game_object.item)
-            if game_object.type == object_type or item.type == object_type:
+            if game_object.type in object_types or item.type in object_types:
                 objects.append(game_object)
         return objects
+
+    def get_all_objects_by_type(self, object_type):
+        return self.get_all_objects_by_types([object_type])
 
     def get_object_by_id(self, obj_id):
         for game_object in self.get_game_objects():
@@ -139,9 +143,18 @@ class Game():
         start_response = self.startGame(server_time, session_key)
         # TODO parse game state
         self.__game_state = start_response.state
+        for attr, val in start_response.params.event.__dict__.iteritems():
+            self.__game_state.__setattr__(attr, val)
         self.__game_loc = GameLocation(self.__itemReader,
                                        start_response.params.event.location)
         self.get_game_loc().log_game_objects()
+
+        self.__player_brains = PlayerBrains(self.__game_state,
+                                            self.get_game_loc(),
+                                            self.__itemReader)
+        total_brain_count = self.__player_brains.get_total_brains_count()
+        occupied_brain_count = self.__player_brains.get_occupied_brains_count()
+        logger.info("Мозги: %d/%d" % (occupied_brain_count, total_brain_count))
 
         self.select_plant_seed()
 
