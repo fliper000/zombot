@@ -1,3 +1,7 @@
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class PlayerBrains(object):
@@ -28,15 +32,9 @@ class PlayerBrains(object):
         brains_objects = self.__game_location.get_all_objects_by_types(
             zombie_types)
         for brains_object in brains_objects:
-            brains_object_type = self.__item_reader.get(brains_object.item)
-            if ((hasattr(brains_object, 'target') and brains_object.target or
-                hasattr(brains_object, 'isUp') and brains_object.isUp or
-                hasattr(brains_object, 'started') and brains_object.started)
-                and not (hasattr(brains_object_type, 'haveBrains')
-                         and brains_object_type.haveBrains)
-                ):
+            if (self.is_busy(brains_object)):
                 occupied_brains_count += self.__get_brains_required(
-                    brains_object.type
+                    brains_object
                 )
         player_status_item = self.__game_state.playerStatus
         player_status = self.__item_reader.get(player_status_item)
@@ -47,8 +45,24 @@ class PlayerBrains(object):
     def get_free_brain_count(self):
         return self.get_total_brains_count() - self.get_occupied_brains_count()
 
-    def __get_brains_required(self, object_type):
-        brains_required = None
-        if object_type in PlayerBrains.zombies_brains_required:
-            brains_required = PlayerBrains.zombies_brains_required[object_type]
+    def __get_brains_required(self, brains_object):
+        brains_object_type = self.__item_reader.get(brains_object.item)
+        object_type = brains_object.type
+        brains_required = 0
+        if not (hasattr(brains_object_type, 'haveBrains')
+                         and brains_object_type.haveBrains):
+            if object_type in PlayerBrains.zombies_brains_required:
+                brains_required = PlayerBrains.zombies_brains_required[
+                    object_type]
+            else:
+                logger.error("Unknown object type: " + object_type)
         return brains_required
+
+    def is_busy(self, brains_object):
+        return (hasattr(brains_object, 'target') and brains_object.target or
+                hasattr(brains_object, 'isUp') and brains_object.isUp or
+                hasattr(brains_object, 'started') and brains_object.started)
+
+    def has_sufficient_brains_count(self, brains_object):
+        return (self.__get_brains_required(brains_object) <=
+                self.get_free_brain_count())

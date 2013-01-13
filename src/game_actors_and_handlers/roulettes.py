@@ -47,7 +47,7 @@ class GameResultHandler(object):
         self.__item_reader = item_reader
         self.__game_location = game_location
 
-    def handler(self, event_to_handle):
+    def handle(self, event_to_handle):
         nextPlayDate = event_to_handle.nextPlayDate
         extraId = event_to_handle.extraId
         obj_id = event_to_handle.objId

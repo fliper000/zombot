@@ -492,6 +492,21 @@ class GameFertilizePlant(GameAction):
         self.type = 'plant'
 
 
+class GameGainItem(GameAction):
+    type = 'item'
+
+    def __init__(self, objId=None,  # @ReservedAssignment
+                 extraId=None):  # @ReservedAssignment
+        assert (extraId is None
+                or isinstance(extraId, long))
+        assert (objId is None
+                or isinstance(objId, long))
+        self.action = 'gain'
+        self.extraId = extraId
+        self.objId = objId
+        self.type = 'item'
+
+
 class GameGameSettings(CommonEqualityMixin):
     def __init__(self, sound=None,
                  tutorialState=None,

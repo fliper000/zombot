@@ -18,7 +18,7 @@ from game_actors_and_handlers.plants import HarvesterBot, SeederBot,\
 from game_actors_and_handlers.roulettes import RouletteRoller,\
     GameResultHandler
 from game_actors_and_handlers.wood_graves import WoodPicker,\
-    GainMaterialEventHandler
+    GainMaterialEventHandler, WoodTargetSelecter
 from game_actors_and_handlers.pickups import Pickuper
 from game_state.brains import PlayerBrains
 
@@ -216,12 +216,16 @@ class Game():
         return picker
 
     def create_all_actors(self):
+        events_sender = self
         self.__actors = [
             self.create_gift_receiver(),
             self.create_harvester(),
             self.create_seeder(),
             self.create_roller(),
             self.create_wood_picker(),
+            WoodTargetSelecter(self.__itemReader, self.get_game_loc(),
+                               events_sender, self._get_timer(),
+                               self.__player_brains)
         ]
 
     def perform_all_actions(self):

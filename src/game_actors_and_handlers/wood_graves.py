@@ -1,10 +1,53 @@
 # coding=utf-8
 import logging
 from game_state.game_types import GameWoodGrave, GameWoodGraveDouble,\
-    GamePickItem
+    GamePickItem, GameWoodTree, GameGainItem
 from game_state.game_event import dict2obj
 
 logger = logging.getLogger(__name__)
+
+
+class WoodTargetSelecter(object):
+    def __init__(self, item_reader, game_location,
+                  events_sender, timer, player_brains):
+        self.__item_reader = item_reader
+        self.__game_location = game_location
+        self.__events_sender = events_sender
+        self.__timer = timer
+        self.__player_brains = player_brains
+
+    def perform_action(self):
+        # get all free workers
+        wood_graves = self.__game_location.get_all_objects_by_types([
+            GameWoodGrave.type,
+            GameWoodGraveDouble.type
+        ])
+        # get free workers
+        free_workers = []
+        for wood_grave in wood_graves:
+            if not self.__player_brains.is_busy(wood_grave):
+                free_workers.append(wood_grave)
+        # get any free worker
+        if free_workers:
+            free_worker = free_workers[0]
+            # check brains count
+            if self.__player_brains.has_sufficient_brains_count(free_worker):
+                logger.info("Отправляем зомби на работу")
+                # select any wood tree
+                trees = self.__game_location.get_all_objects_by_type(
+                    GameWoodTree.type
+                )
+                if trees:
+                    tree = trees[0]
+                    # make sure gain is not started yet
+                    if tree.gainStarted:
+                        logger.info("Уже рубится")
+                    else:
+                        logger.info("Рубим дерево")
+                        gain_event = GameGainItem(tree.id, free_worker.id)
+                        self.__events_sender.sendGameEvents([gain_event])
+                else:
+                    logger.info("Не осталось деревьев")
 
 
 class WoodPicker(object):
@@ -87,6 +130,8 @@ class GainMaterialEventHandler(object):
                         self.get_game_loc().append_object(new_obj)
                         logger.info(u"'%s' превращён в '%s'" %
                                     (target_item.name, box_item.name))
+                        # add free brains
+                        delattr(wood_grave, 'target')
                 delattr(wood_grave, 'jobEndTime')
         else:
             logger.info("There's no jobEndTime")
