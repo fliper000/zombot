@@ -8,6 +8,8 @@ from game_state.game_event import dict2obj, obj2dict
 import logging
 from game_state.item_reader import GameItemReader
 from game_engine import GameLocation
+from game_actors_and_handlers.wood_graves import GainMaterialEventHandler
+from game_actors_and_handlers.roulettes import GameResultHandler
 
 
 class Test(unittest.TestCase):
@@ -39,14 +41,14 @@ class Test(unittest.TestCase):
         BASE_REQUEST_ID = 49
         # setup
         game = self.createGame()
-        game.send = MagicMock()
+        game.get_request_sender = MagicMock()
         game._getInitialId = lambda: BASE_REQUEST_ID
 
         # exercise
         game.getTime()
 
         # verify
-        game.send.assert_called_once_with(GameTIME())
+        game.get_request_sender().send.assert_called_once_with(GameTIME())
 
     def testGetTimeShouldReturnKeyAndTime(self):
         BASE_REQUEST_ID = 49
@@ -81,13 +83,13 @@ class Test(unittest.TestCase):
         game = self.createGame(client_time=CLIENT_TIME)
         game._getUserInfo = lambda: USER_INFO
         game._createFactory(SERVER_TIME)
-        game.send = Mock()
+        game.get_request_sender().send = Mock()
 
         # exercise
         game.startGame(SERVER_TIME, SESSION_KEY)
 
         # verify
-        game.send.assert_called_once_with(GameSTART(
+        game.get_request_sender().send.assert_called_once_with(GameSTART(
                                            clientTime=CLIENT_TIME,
                                            ad=u"user_apps",
                                            lang=u"en",
@@ -111,7 +113,7 @@ class Test(unittest.TestCase):
         game._setClientVersion(CLIENT_VERSION)
 
         # exercise
-        game.send({'type': 'TIME', 'id': BASE_REQUEST_ID})
+        game.get_request_sender().send({'type': 'TIME', 'id': BASE_REQUEST_ID})
 
         # verify
         game_server_connection.sendRequest.assert_called_once_with(
@@ -126,28 +128,34 @@ class Test(unittest.TestCase):
 
     def testHandleGameResultEvent(self):
         # setup
+        BUILDING_ID = 278L
         logging.basicConfig(level=logging.INFO)
-        game = self.createGame()
         event_to_handle = dict2obj({u'action': u'play',
                                     u'extraId': u'B_EMERALD_ROULETTE',
                                     u'nextPlayDate': u'43250684',
-                                    u'objId': 278L,
+                                    u'objId': BUILDING_ID,
                                     u'result': {u'pos': 5L},
                                     u'type': u'game'}
                                    )
-        building = dict2obj({u'level': 2L,
+        building_dict = {
+                             u'level': 2L,
                              u'nextPlayTimes': {u'B_EMERALD_ROULETTE':
                                                 u'40061197'},
                              u'item': u'@B_FLAG_EMERALD',
                              u'y': 99L,
                              u'x': 62L,
                              u'type': u'building',
-                             u'id': 278L})
-        game.get_game_loc = Mock()
-        game.get_game_loc().get_object_by_id = Mock(return_value=building)
+                             u'id': BUILDING_ID
+                        }
+        game_location = GameLocation(Test.game_item_reader,
+                                     dict2obj({"gameObjects":
+                                               [building_dict]}))
+        building = game_location.get_object_by_id(BUILDING_ID)
 
         # exercise
-        game.handleGameResultEvent(event_to_handle)
+        result_handler = GameResultHandler(Test.game_item_reader,
+                                           game_location)
+        result_handler.handle(event_to_handle)
 
         # verify
         expected = event_to_handle.nextPlayDate
@@ -156,7 +164,6 @@ class Test(unittest.TestCase):
 
     def testHandleGainMaterialEventAddsJobTime(self):
         # setup
-        game = self.createGame()
         JOB_END_TIME = u'2458640'
         event_to_handle = dict2obj({u'action': u'start',
                                     u'doneCounter': 181L,
@@ -171,9 +178,12 @@ class Test(unittest.TestCase):
                                u'materials': [u'@S_19', u'@S_19', u'@S_19'],
                                u'doneCounter': 12L, u'y': 70L, u'x': 60L,
                                u'type': u'woodGraveDouble', u'id': 307L})
+        game_location = Mock()
+        game_location.get_object_by_id = Mock(return_value=wood_grave)
 
         # exercise
-        game.handleGainMaterialEvent(event_to_handle, wood_grave)
+        GainMaterialEventHandler(Test.game_item_reader,
+                                 game_location, Mock()).handle(event_to_handle)
 
         # verify
         self.assertEqual(wood_grave.jobEndTime, event_to_handle.jobEndTime)
@@ -181,8 +191,9 @@ class Test(unittest.TestCase):
 
     def testHandleGainMaterialEventAddsMaterial(self):
         # setup
-        game = self.createGame(current_time=2458641)
         TARGET_ID = -190
+        GRAVE_ID = 307L
+        JOB_END_TIME = u'2458640'
         location = dict2obj(
                 {"gameObjects": [{
                  "type":"woodTree",
@@ -191,29 +202,30 @@ class Test(unittest.TestCase):
                  "x":43,
                  "y":19,
                  "materialCount":35,
-                 "gainStarted": False}]
-                })
-        game_location = GameLocation(Test.game_item_reader, location)
-        game.get_game_loc = Mock(return_value=game_location)
-        JOB_END_TIME = u'2458640'
-        event_to_handle = dict2obj({u'action': u'start',
-                                    u'doneCounter': 181L,
-                                    u'jobEndTime': JOB_END_TIME,
-                                    u'jobStartTime': u'1558640',
-                                    u'objId': 267L,
-                                    u'startCounter': 182L,
-                                    u'targetId': TARGET_ID,
-                                    u'type': u'gainMaterial'})
-        wood_grave = dict2obj({u'startCounter': 12L,
+                 "gainStarted": False},
+                 {u'startCounter': 12L,
                                u'target': {u'id': TARGET_ID},
                                u'item': u'@SC_WOOD_GRAVE2',
                                u'jobEndTime': JOB_END_TIME,
                                u'materials': [],
                                u'doneCounter': 12L, u'y': 70L, u'x': 60L,
-                               u'type': u'woodGraveDouble', u'id': 307L})
+                               u'type': u'woodGraveDouble', u'id': GRAVE_ID},
+                 ]
+                })
+        game_location = GameLocation(Test.game_item_reader, location)
+        event_to_handle = dict2obj({u'action': u'start',
+                                    u'doneCounter': 181L,
+                                    u'jobEndTime': JOB_END_TIME,
+                                    u'jobStartTime': u'1558640',
+                                    u'objId': GRAVE_ID,
+                                    u'startCounter': 182L,
+                                    u'targetId': TARGET_ID,
+                                    u'type': u'gainMaterial'})
+        wood_grave = game_location.get_object_by_id(307L)
 
         # exercise
-        game.handleGainMaterialEvent(event_to_handle, wood_grave)
+        GainMaterialEventHandler(Test.game_item_reader,
+                                 game_location, Mock()).handle(event_to_handle)
 
         # verify
         self.assertEqual([u'@S_19'], wood_grave.materials)
@@ -221,39 +233,45 @@ class Test(unittest.TestCase):
 
     def testHandleStopGainMaterialConvertsTarget(self):
         # setup
-        game = self.createGame()
-        game._getCurrentClientTime = Mock(return_value=2458641)
         TARGET_ID = -190
-        location = dict2obj(
-                {"gameObjects": [{
-                 "type":"woodTree",
-                 "item":"@SC_OAK5",
-                 "id": TARGET_ID,
-                 "x":43,
-                 "y":19,
-                 "materialCount":1,
-                 "gainStarted": False}]
-                })
-        game_location = GameLocation(Test.game_item_reader, location)
-        game.get_game_loc = Mock(return_value=game_location)
+        GRAVE_ID = 307L
         JOB_END_TIME = u'2458640'
+        location = dict2obj(
+                {"gameObjects": [
+                    {
+                        "type":"woodTree",
+                        "item":"@SC_OAK5",
+                        "id": TARGET_ID,
+                        "x":43,
+                        "y":19,
+                        "materialCount":1,
+                        "gainStarted": False
+                    },
+                    {
+                        u'startCounter': 12L,
+                        u'target': {u'id': TARGET_ID},
+                        u'item': u'@SC_WOOD_GRAVE2',
+                        u'jobEndTime': JOB_END_TIME,
+                        u'materials': [],
+                        u'doneCounter': 12L, u'y': 70L, u'x': 60L,
+                        u'type': u'woodGraveDouble',
+                        u'id': GRAVE_ID
+                    }
+               ]})
+        game_location = GameLocation(Test.game_item_reader, location)
+        wood_grave = game_location.get_object_by_id(GRAVE_ID)
         event_to_handle = dict2obj({u'action': u'stop',
-                                    u'objId': 267L,
+                                    u'objId': GRAVE_ID,
                                     u'targetId': TARGET_ID,
                                     u'type': u'gainMaterial'})
-        wood_grave = dict2obj({u'startCounter': 12L,
-                               u'target': {u'id': TARGET_ID},
-                               u'item': u'@SC_WOOD_GRAVE2',
-                               u'jobEndTime': JOB_END_TIME,
-                               u'materials': [],
-                               u'doneCounter': 12L, u'y': 70L, u'x': 60L,
-                               u'type': u'woodGraveDouble', u'id': 307L})
 
         # exercise
-        game.handleGainMaterialEvent(event_to_handle, wood_grave)
+        GainMaterialEventHandler(Test.game_item_reader,
+                                 game_location, Mock()).handle(event_to_handle)
 
         # verify
-        self.assertEqual([{'item': u'@SC_PICKUP_BOX_WOOD6',
-                                    'objId': TARGET_ID,
+        self.assertEqual([obj2dict(wood_grave), {
+                                    'item': u'@SC_PICKUP_BOX_WOOD6',
+                                    'id': TARGET_ID,
                                     'type': u'pickupBox'}],
                          obj2dict(location.gameObjects))

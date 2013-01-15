@@ -242,7 +242,7 @@ class Game():
         if len(events) > 0:
             logger.info("events to send: " + str(events))
         command = GameEVT(events=events)
-        game_response = self.send(command)
+        game_response = self.get_request_sender().send(command)
         self.__events_to_handle += game_response.events
 
     def handleEvent(self, event_to_handle):
@@ -273,7 +273,7 @@ class Game():
         Returns key (string) and time (int)
         '''
         command = GameTIME()
-        response = self.send(command)
+        response = self.get_request_sender().send(command)
         return response.key, response.time
 
     def _getUserInfo(self):
@@ -306,7 +306,7 @@ class Game():
                       clientTime=client_time)
         sending_time = (time.time() - start_time) * 1000
         self._get_timer()._add_sending_time(sending_time)
-        return self.send(command)
+        return self.get_request_sender().send(command)
 
     def _getSessionKey(self):
         return self.__factory._getSessionKey()
@@ -320,11 +320,22 @@ class Game():
     def _setClientVersion(self, version):
         self.__session.CLIENT_VERSION = version
 
+    def _createFactory(self, requestId=None):
+        self.__factory = message_factory.Factory(self.__session, requestId)
+        self.__request_sender = RequestSender(self.__factory,
+                                              self.__connection)
+
+    def get_request_sender(self):
+        return self.__request_sender
+
+
+class RequestSender(object):
+    def __init__(self, message_factory, connection):
+        self.__factory = message_factory
+        self.__connection = connection
+
     def send(self, data):
         data = obj2dict(data)
         assert 'type' in data
         request = self.__factory.createRequest(data)
         return dict2obj(request.send(self.__connection))
-
-    def _createFactory(self, requestId=None):
-        self.__factory = message_factory.Factory(self.__session, requestId)
