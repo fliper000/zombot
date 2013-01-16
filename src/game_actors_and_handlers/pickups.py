@@ -19,4 +19,4 @@ class Pickuper(object):
             logger.info(u'Подбираем дроп...')
         for pickup in pickups:
             pick_event = GamePickPickup([pickup])
-            self.__events_sender.sendGameEvents([pick_event])
+            self.__events_sender.send_game_events([pick_event])

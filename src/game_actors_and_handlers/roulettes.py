@@ -39,7 +39,7 @@ class RouletteRoller(object):
                         u" по координатам (" +
                         str(building.x) + u", " + str(building.y) + u")")
                     roll = GamePlayGame(building.id, game_id)
-                    self.__events_sender.sendGameEvents([roll])
+                    self.__events_sender.send_game_events([roll])
 
 
 class GameResultHandler(object):

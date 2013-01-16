@@ -51,7 +51,7 @@ class GiftReceiverBot(object):
                 if free or self.__receive_options["non_free"]:
                     logger.info(u"Принимаю " + gift_name)
                     apply_gift_event = GameApplyGiftEvent(GameGift(gift.id))
-                    self.__events_sender.sendGameEvents([apply_gift_event])
+                    self.__events_sender.send_game_events([apply_gift_event])
         self.remove_gift_from_game_state(gift)
 
     def remove_gift_from_game_state(self, gift):

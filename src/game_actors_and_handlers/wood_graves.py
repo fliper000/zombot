@@ -45,7 +45,7 @@ class WoodTargetSelecter(object):
                     else:
                         logger.info("Рубим дерево")
                         gain_event = GameGainItem(tree.id, free_worker.id)
-                        self.__events_sender.sendGameEvents([gain_event])
+                        self.__events_sender.send_game_events([gain_event])
                 else:
                     logger.info("Не осталось деревьев")
 
@@ -74,7 +74,7 @@ class WoodPicker(object):
 
     def _pick_material(self, wood_grave, material_id):
         pick_item = GamePickItem(itemId=material_id, objId=wood_grave.id)
-        self.__events_sender.sendGameEvents([pick_item])
+        self.__events_sender.send_game_events([pick_item])
 
 
 class GainMaterialEventHandler(object):

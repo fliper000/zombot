@@ -28,7 +28,7 @@ class HarvesterBot():
                         u" по координатам (" +
                         str(slag.x) + ", " + str(slag.y) + u")")
             dig_event = GameDigItem(slag.id)
-            self.__events_sender.sendGameEvents([dig_event])
+            self.__events_sender.send_game_events([dig_event])
             # convert slag to ground
             slag.type = 'base'
             slag.item = '@GROUND'
@@ -41,7 +41,7 @@ class HarvesterBot():
                         u" по координатам (" +
                         str(harvestItem.x) + u", " + str(harvestItem.y) + u")")
             pick_event = GamePickItem(objId=harvestItem.id)
-            self.__events_sender.sendGameEvents([pick_event])
+            self.__events_sender.send_game_events([pick_event])
             if harvestItem.type == GamePlant.type:
                 # convert plant to slag
                 harvestItem.type = GameSlag.type
@@ -78,7 +78,7 @@ class SeederBot(object):
             buy_event = GameBuyItem(unicode(seed_item.id),
                                     ground.id,
                                     ground.y, ground.x)
-            self.__events_sender.sendGameEvents([buy_event])
+            self.__events_sender.send_game_events([buy_event])
             ground.type = u'plant'
             ground.item = unicode(seed_item.id)
 

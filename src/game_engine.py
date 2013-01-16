@@ -98,6 +98,32 @@ class GameTimer(object):
         return int(time) <= self._get_current_client_time()
 
 
+class GameEventsSender(object):
+    def __init__(self, request_sender):
+        self.__events_to_handle = []
+        self.__request_sender = request_sender
+
+    def print_game_events(self):
+        if len(self.__events_to_handle) > 0:
+            logger.info("received events: " + str(self.__events_to_handle))
+
+    def get_game_events(self):
+        return list(self.__events_to_handle)
+
+    def send_game_events(self, events=[]):
+        '''
+        Returns key (string) and time (int)
+        '''
+        if len(events) > 0:
+            logger.info("events to send: " + str(events))
+        command = GameEVT(events=events)
+        game_response = self.__request_sender.send(command)
+        self.__events_to_handle += game_response.events
+
+    def remove_game_event(self, event):
+        self.__events_to_handle.remove(event)
+
+
 class Game():
 
     def __init__(self, connection, user_id, auth_key, access_token,
@@ -116,7 +142,6 @@ class Game():
             self.__itemReader = game_item_reader
         self.__user_prompt = user_prompt
         self.__selected_seed = None
-        self.__events_to_handle = []
         self.__receive_gifts_with_messages = False
         self.__receive_non_free_gifts = False
         self.__timer = GameTimer()
@@ -175,54 +200,28 @@ class Game():
         handle EVT response
         '''
         while(True):
-            self.sendGameEvents()
-            if len(self.__events_to_handle) > 0:
-                logger.info("received events: " + str(self.__events_to_handle))
-            for event in list(self.__events_to_handle):
+            self.__game_events_sender.send_game_events()
+            self.__game_events_sender.print_game_events()
+            for event in self.__game_events_sender.get_game_events():
                 self.handleEvent(event)
             self.perform_all_actions()
             time.sleep(30)
 
-    def create_gift_receiver(self):
+    def create_all_actors(self):
         receive_options = {'with_messages': self.__receive_gifts_with_messages,
                            'non_free': self.__receive_non_free_gifts}
-        events_sender = self
-        receiver = GiftReceiverBot(self.__itemReader, self.__game_state,
-                                events_sender, receive_options)
-        return receiver
-
-    def create_harvester(self):
-        events_sender = self
-        harvester = HarvesterBot(self.__itemReader, self.get_game_loc(),
-                                 events_sender, self._get_timer())
-        return harvester
-
-    def create_seeder(self):
-        events_sender = self
-        harvester = SeederBot(self.__itemReader, self.get_game_loc(),
-                                 events_sender, self.__selected_seed)
-        return harvester
-
-    def create_roller(self):
-        events_sender = self
-        roller = RouletteRoller(self.__itemReader, self.get_game_loc(),
-                                 events_sender, self._get_timer())
-        return roller
-
-    def create_wood_picker(self):
-        events_sender = self
-        picker = WoodPicker(self.__itemReader, self.get_game_loc(),
-                                 events_sender, self._get_timer())
-        return picker
-
-    def create_all_actors(self):
-        events_sender = self
+        events_sender = self.__game_events_sender
         self.__actors = [
-            self.create_gift_receiver(),
-            self.create_harvester(),
-            self.create_seeder(),
-            self.create_roller(),
-            self.create_wood_picker(),
+            GiftReceiverBot(self.__itemReader, self.__game_state,
+                            events_sender, receive_options),
+            HarvesterBot(self.__itemReader, self.get_game_loc(),
+                         events_sender, self._get_timer()),
+            SeederBot(self.__itemReader, self.get_game_loc(),
+                      events_sender, self.__selected_seed),
+            RouletteRoller(self.__itemReader, self.get_game_loc(),
+                           events_sender, self._get_timer()),
+            WoodPicker(self.__itemReader, self.get_game_loc(),
+                       events_sender, self._get_timer()),
             WoodTargetSelecter(self.__itemReader, self.get_game_loc(),
                                events_sender, self._get_timer(),
                                self.__player_brains)
@@ -235,22 +234,13 @@ class Game():
         for actor in self.__actors:
             actor.perform_action()
 
-    def sendGameEvents(self, events=[]):
-        '''
-        Returns key (string) and time (int)
-        '''
-        if len(events) > 0:
-            logger.info("events to send: " + str(events))
-        command = GameEVT(events=events)
-        game_response = self.get_request_sender().send(command)
-        self.__events_to_handle += game_response.events
-
     def handleEvent(self, event_to_handle):
+        events_sender = self.__game_events_sender
         if event_to_handle.action == 'addGift':
             AddGiftEventHandler(self.__game_state).handle(event_to_handle)
         elif event_to_handle.action == 'add':
             if event_to_handle.type == 'pickup':
-                Pickuper(self.__itemReader, self.get_game_loc(), self,
+                Pickuper(self.__itemReader, self.get_game_loc(), events_sender,
                          self.__timer).pickPickups(event_to_handle.pickups)
         elif event_to_handle.type == GameFertilizePlant.type:
             PlantEventHandler(self.get_game_loc()).handle(event_to_handle)
@@ -262,7 +252,7 @@ class Game():
                                      self.__timer).handle(event_to_handle)
         else:
             self.logUnknownEvent(event_to_handle)
-        self.__events_to_handle.remove(event_to_handle)
+        self.__game_events_sender.remove_game_event(event_to_handle)
 
     def logUnknownEvent(self, event_to_handle):
         logger = logging.getLogger('unknownEventLogger')
@@ -324,6 +314,7 @@ class Game():
         self.__factory = message_factory.Factory(self.__session, requestId)
         self.__request_sender = RequestSender(self.__factory,
                                               self.__connection)
+        self.__game_events_sender = GameEventsSender(self.__request_sender)
 
     def get_request_sender(self):
         return self.__request_sender
