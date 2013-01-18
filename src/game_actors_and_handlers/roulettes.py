@@ -6,10 +6,10 @@ logger = logging.getLogger(__name__)
 
 
 class RouletteRoller(object):
-    def __init__(self, item_reader, game_location,
-                  events_sender, timer):
+    def __init__(self, item_reader, game_state,
+                  events_sender, timer, options):
         self.__item_reader = item_reader
-        self.__game_location = game_location
+        self.__game_location = game_state.get_game_loc()
         self.__events_sender = events_sender
         self.__timer = timer
 

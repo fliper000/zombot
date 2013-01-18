@@ -6,10 +6,10 @@ logger = logging.getLogger(__name__)
 
 
 class HarvesterBot():
-    def __init__(self, item_reader, game_location,
-                  events_sender, timer):
+    def __init__(self, item_reader, game_state,
+                  events_sender, timer, options):
         self.__item_reader = item_reader
-        self.__game_location = game_location
+        self.__game_location = game_state.get_game_loc()
         self.__events_sender = events_sender
         self.__timer = timer
 
@@ -58,12 +58,12 @@ class HarvesterBot():
 
 class SeederBot(object):
 
-    def __init__(self, item_reader, game_location,
-                  events_sender, selected_seed):
+    def __init__(self, item_reader, game_state,
+                  events_sender, timer, options):
         self.__item_reader = item_reader
-        self.__game_location = game_location
+        self.__game_location = game_state.get_game_loc()
         self.__events_sender = events_sender
-        self.__selected_seed = selected_seed
+        self.__selected_seed = options[self.__class__.__name__]
 
     def perform_action(self):
         grounds = self.__game_location.get_all_objects_by_type('ground')

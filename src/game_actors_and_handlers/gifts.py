@@ -10,17 +10,17 @@ class GiftReceiverBot(object):
     '''
 
     def __init__(self, item_reader, game_state,
-                  events_sender, receive_options):
+                  events_sender, timer, options):
         '''
-        @param receive_options: Available receive options:
+        @param options: Available receive options:
 
         with_messages: receive gifts with messages
         non_free: receive non-free gifts
         '''
         self.__item_reader = item_reader
-        self.__game_state = game_state
+        self.__game_state = game_state.get_state()
         self.__events_sender = events_sender
-        self.__receive_options = receive_options
+        self.__receive_options = options[self.__class__.__name__]
 
     def perform_action(self):
         self.receive_all_gifts()

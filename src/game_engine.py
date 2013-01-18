@@ -184,6 +184,34 @@ class GameInitializer():
         return game_info
 
 
+class GameState():
+
+    def __init__(self, start_response, item_reader):
+        self.__game_state = start_response.state
+        for attr, val in start_response.params.event.__dict__.iteritems():
+            self.__game_state.__setattr__(attr, val)
+
+        self.__game_loc = GameLocation(item_reader,
+                                       start_response.params.event.location)
+        self.get_game_loc().log_game_objects()
+
+        self.__player_brains = PlayerBrains(self.__game_state,
+                                            self.get_game_loc(),
+                                            item_reader)
+        total_brain_count = self.__player_brains.get_total_brains_count()
+        occupied_brain_count = self.__player_brains.get_occupied_brains_count()
+        logger.info("Мозги: %d/%d" % (occupied_brain_count, total_brain_count))
+
+    def get_game_loc(self):
+        return self.__game_loc
+
+    def get_state(self):
+        return self.__game_state
+
+    def get_brains(self):
+        return self.__player_brains
+
+
 class Game():
 
     CLIENT_VERSION = long(1352868088)
@@ -217,7 +245,7 @@ class Game():
                                                   self.__session)
 
     def select_plant_seed(self):
-        level = self.__game_state.level
+        level = self.get_game_state().level
         location = self.get_game_loc().get_location_id()
         seed_reader = GameSeedReader(self.__itemReader)
         available_seeds = seed_reader.getAvailablePlantSeedsDict(level,
@@ -243,22 +271,13 @@ class Game():
 
     def save_game_state(self, start_response):
         # parse game state
-        self.__game_state = start_response.state
-        for attr, val in start_response.params.event.__dict__.iteritems():
-            self.__game_state.__setattr__(attr, val)
-        self.__game_loc = GameLocation(self.__itemReader,
-                                       start_response.params.event.location)
-        self.get_game_loc().log_game_objects()
-
-        self.__player_brains = PlayerBrains(self.__game_state,
-                                            self.get_game_loc(),
-                                            self.__itemReader)
-        total_brain_count = self.__player_brains.get_total_brains_count()
-        occupied_brain_count = self.__player_brains.get_occupied_brains_count()
-        logger.info("Мозги: %d/%d" % (occupied_brain_count, total_brain_count))
+        self.__game_state_ = GameState(start_response, self.__itemReader)
 
     def get_game_loc(self):
-        return self.__game_loc
+        return self.__game_state_.get_game_loc()
+
+    def get_game_state(self):
+        return self.__game_state_.get_state()
 
     def eventLoop(self):
         '''
@@ -277,22 +296,25 @@ class Game():
     def create_all_actors(self):
         receive_options = {'with_messages': self.__receive_gifts_with_messages,
                            'non_free': self.__receive_non_free_gifts}
+        options = {'GiftReceiverBot': receive_options,
+                   'SeederBot': self.__selected_seed}
         events_sender = self.__game_events_sender
-        self.__actors = [
-            GiftReceiverBot(self.__itemReader, self.__game_state,
-                            events_sender, receive_options),
-            HarvesterBot(self.__itemReader, self.get_game_loc(),
-                         events_sender, self._get_timer()),
-            SeederBot(self.__itemReader, self.get_game_loc(),
-                      events_sender, self.__selected_seed),
-            RouletteRoller(self.__itemReader, self.get_game_loc(),
-                           events_sender, self._get_timer()),
-            WoodPicker(self.__itemReader, self.get_game_loc(),
-                       events_sender, self._get_timer()),
-            WoodTargetSelecter(self.__itemReader, self.get_game_loc(),
-                               events_sender, self._get_timer(),
-                               self.__player_brains)
+        timer = self._get_timer()
+        item_reader = self.__itemReader
+        game_state = self.__game_state_
+        actor_classes = [
+            GiftReceiverBot,
+            HarvesterBot,
+            SeederBot,
+            RouletteRoller,
+            WoodPicker,
+            WoodTargetSelecter,
         ]
+        self.__actors = []
+        for actor_class in actor_classes:
+            self.__actors.append(
+                actor_class(item_reader, game_state, events_sender, timer,
+                            options))
 
     def perform_all_actions(self):
         '''
@@ -304,7 +326,7 @@ class Game():
     def handleEvent(self, event_to_handle):
         events_sender = self.__game_events_sender
         if event_to_handle.action == 'addGift':
-            AddGiftEventHandler(self.__game_state).handle(event_to_handle)
+            AddGiftEventHandler(self.get_game_state()).handle(event_to_handle)
         elif event_to_handle.action == 'add':
             if event_to_handle.type == 'pickup':
                 Pickuper(self.__itemReader, self.get_game_loc(), events_sender,
