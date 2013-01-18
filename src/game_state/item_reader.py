@@ -23,6 +23,9 @@ class GameItemReader():
         item_id = str(item_id).lstrip('@')
         return dict2obj(self.content_dict[item_id])
 
+    def get_name(self, item):
+        return self.get(item.item).name
+
     def read(self, filename):
         with open(filename) as f:
             self.contents = json.load(f)

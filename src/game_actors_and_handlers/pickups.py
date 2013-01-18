@@ -1,6 +1,6 @@
 # coding=utf-8
 import logging
-from game_state.game_types import GamePickPickup
+from game_state.game_types import GamePickPickup, GamePickItem, GamePickup
 from game_actors_and_handlers.base import BaseActor
 
 
@@ -20,6 +20,19 @@ class Pickuper(BaseActor):
             pick_event = GamePickPickup([pickup])
             self._get_events_sender().send_game_events([pick_event])
             self._get_game_location().remove_pickup(pickup)
+
+
+class BoxPickuper(BaseActor):
+
+    def perform_action(self):
+        boxes = self._get_game_location().get_all_objects_by_type(
+                                                    GamePickup.type)
+        for box in boxes:
+            name = self._get_item_reader().get_name(box)
+            logger.info('Вскрываем ' + name)
+            pick_event = GamePickItem(objId=box.id)
+            self._get_events_sender().send_game_events([pick_event])
+            self._get_game_location().remove_object_by_id(box.id)
 
 
 class AddPickupHandler(object):

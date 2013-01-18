@@ -24,7 +24,8 @@ class BaseActor(object):
         return self.__timer
 
     def _get_game_location(self):
-        return self._get_game_state().get_game_loc()
+        location = self._get_game_state().get_game_loc()
+        return location
 
     def _get_player_brains(self):
         return self._get_game_state().get_brains()

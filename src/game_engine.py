@@ -19,7 +19,8 @@ from game_actors_and_handlers.roulettes import RouletteRoller, \
     GameResultHandler
 from game_actors_and_handlers.wood_graves import WoodPicker, \
     GainMaterialEventHandler, WoodTargetSelecter
-from game_actors_and_handlers.pickups import Pickuper, AddPickupHandler
+from game_actors_and_handlers.pickups import Pickuper, AddPickupHandler,\
+    BoxPickuper
 from game_state.brains import PlayerBrains
 
 logger = logging.getLogger(__name__)
@@ -314,6 +315,7 @@ class Game():
         game_state = self.__game_state_
         actor_classes = [
             Pickuper,
+            BoxPickuper,
             GiftReceiverBot,
             HarvesterBot,
             SeederBot,
