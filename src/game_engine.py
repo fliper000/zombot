@@ -7,17 +7,17 @@ import logging
 import time
 from game_state.item_reader import GameItemReader, GameSeedReader
 from game_state.game_event import dict2obj, obj2dict
-from game_state.game_types import GameEVT, GameTIME, GameSTART,\
+from game_state.game_types import GameEVT, GameTIME, GameSTART, \
     GameInfo, \
-    GameFertilizePlant, GamePlayGame,\
+    GameFertilizePlant, GamePlayGame, \
     GameStartGainMaterial
 import pprint
 from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
-from game_actors_and_handlers.plants import HarvesterBot, SeederBot,\
+from game_actors_and_handlers.plants import HarvesterBot, SeederBot, \
     PlantEventHandler
-from game_actors_and_handlers.roulettes import RouletteRoller,\
+from game_actors_and_handlers.roulettes import RouletteRoller, \
     GameResultHandler
-from game_actors_and_handlers.wood_graves import WoodPicker,\
+from game_actors_and_handlers.wood_graves import WoodPicker, \
     GainMaterialEventHandler, WoodTargetSelecter
 from game_actors_and_handlers.pickups import Pickuper
 from game_state.brains import PlayerBrains
@@ -62,7 +62,7 @@ class GameLocation():
 
     def log_game_objects(self):
         for gameObject in self.get_game_objects():
-            #if gameObject.type != 'base':
+            # if gameObject.type != 'base':
                 logger.info(obj2dict(gameObject))
 
     def remove_object_by_id(self, obj_id):
@@ -124,16 +124,76 @@ class GameEventsSender(object):
         self.__events_to_handle.remove(event)
 
 
+class GameInitializer():
+    def __init__(self, timer, request_sender, factory, access_token,
+                 session):
+        self.__timer = timer
+        self.__request_sender = request_sender
+        self.__factory = factory
+        self.__access_token = access_token
+        self.__session = session
+
+    def start(self):
+        # send TIME request (http://java.shadowlands.ru/zombievk/go)
+        # handle redirect (save new url: http://95.163.80.20/zombievk)
+        # parse auth key and time id
+        session_key, server_time = self.get_time()
+
+        # send START
+        start_response = self.start_game(server_time, session_key)
+        return start_response
+
+    def get_time(self):
+        '''
+        Returns key (string) and time (int)
+        '''
+        command = GameTIME()
+        response = self.__request_sender.send(command)
+        return response.key, response.time
+
+    def start_game(self, server_time, session_key):
+        self.__factory.setRequestId(server_time)
+        self.__factory.setSessionKey(session_key)
+        client_time = self.__timer._get_client_time()
+        start_time = time.time()
+        command = GameSTART(lang=u'en', info=self._getUserInfo(),
+                      ad=u'user_apps', serverTime=server_time,
+                      clientTime=client_time)
+        sending_time = (time.time() - start_time) * 1000
+        self.__timer._add_sending_time(sending_time)
+        return self.__request_sender.send(command)
+
+    def _getUserInfo(self):
+        '''
+        returns user info using vk api
+        '''
+        # get vk user info
+        api = vkontakte.api.API(token=self.__access_token)
+        info = api.getProfiles(
+            uids=self.__session.getUserId(), format='json',
+            fields='bdate,sex,first_name,last_name,city,country')
+        info = info[0]
+        my_country = api.places.getCountryById(cids=int(info['country']))[0]
+        info['country'] = my_country['name']
+        my_city = api.places.getCityById(cids=int(info['city']))[0]
+        info['city'] = my_city['name']
+        game_info = GameInfo(city=info['city'], first_name=info['first_name'],
+                 last_name=info['last_name'],
+                 uid=long(info['uid']), country=info['country'],
+                 sex=long(info['sex']), bdate=info['bdate'])
+        return game_info
+
+
 class Game():
 
     def __init__(self, connection, user_id, auth_key, access_token,
                   user_prompt, game_item_reader=None):
         self.__connection = connection
-        self.__access_token = access_token
         self.__session = Session(user_id, auth_key,
                                  client_version=self._getClientVersion()
                                  )
         self._createFactory()
+        # load items dictionary
         if game_item_reader is None:
             self.__itemReader = GameItemReader()
             self.__itemReader.download('items.txt')
@@ -145,6 +205,10 @@ class Game():
         self.__receive_gifts_with_messages = False
         self.__receive_non_free_gifts = False
         self.__timer = GameTimer()
+        self.__game_initializer = GameInitializer(self.__timer,
+                                                  self.get_request_sender(),
+                                                  self.__factory, access_token,
+                                                  self.__session)
 
     def select_plant_seed(self):
         level = self.__game_state.level
@@ -157,16 +221,22 @@ class Game():
         self.__selected_seed = available_seeds[seed_name]
 
     def start(self):
-        # load items dictionary
 
-        # send TIME request (http://java.shadowlands.ru/zombievk/go)
-        # handle redirect (save new url: http://95.163.80.20/zombievk)
-        # parse auth key and time id
-        session_key, server_time = self.getTime()
+        start_response = self.__game_initializer.start()
 
-        # send START
-        start_response = self.startGame(server_time, session_key)
-        # TODO parse game state
+        self.save_game_state(start_response)
+
+        self.select_plant_seed()
+
+        self.create_all_actors()
+
+        # TODO send getMissions
+        # TODO handle getMissions response
+
+        self.eventLoop()
+
+    def save_game_state(self, start_response):
+        # parse game state
         self.__game_state = start_response.state
         for attr, val in start_response.params.event.__dict__.iteritems():
             self.__game_state.__setattr__(attr, val)
@@ -180,15 +250,6 @@ class Game():
         total_brain_count = self.__player_brains.get_total_brains_count()
         occupied_brain_count = self.__player_brains.get_occupied_brains_count()
         logger.info("Мозги: %d/%d" % (occupied_brain_count, total_brain_count))
-
-        self.select_plant_seed()
-
-        self.create_all_actors()
-
-        # TODO send getMissions
-        # TODO handle getMissions response
-
-        self.eventLoop()
 
     def get_game_loc(self):
         return self.__game_loc
@@ -257,46 +318,6 @@ class Game():
     def logUnknownEvent(self, event_to_handle):
         logger = logging.getLogger('unknownEventLogger')
         logger.info(pprint.pformat(obj2dict(event_to_handle)))
-
-    def getTime(self):
-        '''
-        Returns key (string) and time (int)
-        '''
-        command = GameTIME()
-        response = self.get_request_sender().send(command)
-        return response.key, response.time
-
-    def _getUserInfo(self):
-        '''
-        returns user info using vk api
-        '''
-        # get vk user info
-        api = vkontakte.api.API(token=self.__access_token)
-        info = api.getProfiles(
-            uids=self.__session.getUserId(), format='json',
-            fields='bdate,sex,first_name,last_name,city,country')
-        info = info[0]
-        my_country = api.places.getCountryById(cids=int(info['country']))[0]
-        info['country'] = my_country['name']
-        my_city = api.places.getCityById(cids=int(info['city']))[0]
-        info['city'] = my_city['name']
-        game_info = GameInfo(city=info['city'], first_name=info['first_name'],
-                 last_name=info['last_name'],
-                 uid=long(info['uid']), country=info['country'],
-                 sex=long(info['sex']), bdate=info['bdate'])
-        return game_info
-
-    def startGame(self, server_time, session_key):
-        self.__factory.setRequestId(server_time)
-        self.__factory.setSessionKey(session_key)
-        client_time = self._get_timer()._get_client_time()
-        start_time = time.time()
-        command = GameSTART(lang=u'en', info=self._getUserInfo(),
-                      ad=u'user_apps', serverTime=server_time,
-                      clientTime=client_time)
-        sending_time = (time.time() - start_time) * 1000
-        self._get_timer()._add_sending_time(sending_time)
-        return self.get_request_sender().send(command)
 
     def _getSessionKey(self):
         return self.__factory._getSessionKey()

@@ -2,12 +2,12 @@ import unittest
 import game_engine
 from mock import Mock, MagicMock
 import message_factory
-from message_factory import calcCRC
+from message_factory import calcCRC, Session
 from game_state.game_types import GameTIME, GameInfo, GameSTART
 from game_state.game_event import dict2obj, obj2dict
 import logging
 from game_state.item_reader import GameItemReader
-from game_engine import GameLocation
+from game_engine import GameLocation, GameInitializer
 from game_actors_and_handlers.wood_graves import GainMaterialEventHandler
 from game_actors_and_handlers.roulettes import GameResultHandler
 
@@ -38,66 +38,64 @@ class Test(unittest.TestCase):
         return game
 
     def testGetTimeShouldCallSend(self):
-        BASE_REQUEST_ID = 49
         # setup
-        game = self.createGame()
-        game.get_request_sender = MagicMock()
-        game._getInitialId = lambda: BASE_REQUEST_ID
+        request_sender = Mock()
+        game_initializer = GameInitializer(Mock(),
+                                           request_sender,
+                                           Mock(),
+                                           Mock(), Mock())
 
         # exercise
-        game.getTime()
+        game_initializer.get_time()
 
         # verify
-        game.get_request_sender().send.assert_called_once_with(GameTIME())
+        request_sender.send.assert_called_once_with(GameTIME())
 
     def testGetTimeShouldReturnKeyAndTime(self):
-        BASE_REQUEST_ID = 49
         # setup
-        connection = Mock()
         expected_key = '678652045157661214'
         expected_time = 1353868293322
-        request_string = ('{"cmd":"TIME","key":"' + expected_key + '",'
-                         '"redirect":'
-                         '"http://95.163.80.23/zombievk",'
-                         '"id":"45","time":' +
-                         str(expected_time) + '}')
-        request_string = (message_factory.calcCRC(request_string) +
-                         '$' + request_string)
-        connection.sendRequest = Mock(return_value=request_string)
-        game = self.createGame(connection=connection)
-        game._getInitialId = lambda: BASE_REQUEST_ID
+        request_string = ({"cmd": "TIME", "key": expected_key,
+                         "redirect":
+                         "http://95.163.80.23/zombievk",
+                         "id": "45", "time": expected_time})
+        request_string = (request_string)
+        request_sender = Mock()
+        request_sender.send = Mock(return_value=dict2obj(request_string))
+        game_initializer = GameInitializer(Mock(),
+                                           request_sender,
+                                           Mock(),
+                                           Mock(), Mock())
 
         # exercise
-        actual_key, actual_time = game.getTime()
-
+        actual_key, actual_time = game_initializer.get_time()
         # verify
         self.assertEqual(expected_time, actual_time)
         self.assertEqual(expected_key, actual_key)
 
     def testStartGameShouldCallSend(self):
-        CLIENT_TIME = 3162L
-        USER_INFO = GameInfo(u'', u'', u'', 0L, u'', 0L, u'')
         SERVER_TIME = 1000000000L
         SESSION_KEY = 'session_key'
-        # setup
-        game = self.createGame(client_time=CLIENT_TIME)
-        game._getUserInfo = lambda: USER_INFO
-        game._createFactory(SERVER_TIME)
-        game.get_request_sender().send = Mock()
-
+        USER_INFO = GameInfo(u'', u'', u'', 0L, u'', 0L, u'')
+        request_sender = Mock()
+        CLIENT_TIME = 3162L
+        timer = Mock()
+        timer._get_client_time = Mock(return_value=CLIENT_TIME)
+        game_initializer = GameInitializer(timer,
+                                           request_sender,
+                                           Mock(),
+                                           Mock(), Mock())
+        game_initializer._getUserInfo = lambda: USER_INFO
         # exercise
-        game.startGame(SERVER_TIME, SESSION_KEY)
+        game_initializer.start_game(SERVER_TIME, SESSION_KEY)
 
         # verify
-        game.get_request_sender().send.assert_called_once_with(GameSTART(
+        request_sender.send.assert_called_once_with(GameSTART(
                                            clientTime=CLIENT_TIME,
                                            ad=u"user_apps",
                                            lang=u"en",
                                            serverTime=SERVER_TIME,
                                            info=USER_INFO))
-        # should set session key
-        self.assertEqual(SESSION_KEY, game._getSessionKey())
-        # should set request id
 
     def testSendShouldCallSendRequestAndReturnResponseDict(self):
         BASE_REQUEST_ID = 49
