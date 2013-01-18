@@ -186,13 +186,19 @@ class GameInitializer():
 
 class Game():
 
+    CLIENT_VERSION = long(1352868088)
+
     def __init__(self, connection, user_id, auth_key, access_token,
                   user_prompt, game_item_reader=None):
         self.__connection = connection
         self.__session = Session(user_id, auth_key,
-                                 client_version=self._getClientVersion()
+                                 client_version=Game.CLIENT_VERSION
                                  )
-        self._createFactory()
+        self.__factory = message_factory.Factory(self.__session, None)
+        self.__request_sender = RequestSender(self.__factory,
+                                              self.__connection)
+        self.__game_events_sender = GameEventsSender(self.__request_sender)
+
         # load items dictionary
         if game_item_reader is None:
             self.__itemReader = GameItemReader()
@@ -319,23 +325,8 @@ class Game():
         logger = logging.getLogger('unknownEventLogger')
         logger.info(pprint.pformat(obj2dict(event_to_handle)))
 
-    def _getSessionKey(self):
-        return self.__factory._getSessionKey()
-
     def _get_timer(self):
         return self.__timer
-
-    def _getClientVersion(self):
-        return long(1352868088)
-
-    def _setClientVersion(self, version):
-        self.__session.CLIENT_VERSION = version
-
-    def _createFactory(self, requestId=None):
-        self.__factory = message_factory.Factory(self.__session, requestId)
-        self.__request_sender = RequestSender(self.__factory,
-                                              self.__connection)
-        self.__game_events_sender = GameEventsSender(self.__request_sender)
 
     def get_request_sender(self):
         return self.__request_sender

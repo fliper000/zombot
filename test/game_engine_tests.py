@@ -1,13 +1,13 @@
 import unittest
 import game_engine
-from mock import Mock, MagicMock
+from mock import Mock
 import message_factory
 from message_factory import calcCRC, Session
 from game_state.game_types import GameTIME, GameInfo, GameSTART
 from game_state.game_event import dict2obj, obj2dict
 import logging
 from game_state.item_reader import GameItemReader
-from game_engine import GameLocation, GameInitializer
+from game_engine import GameLocation, GameInitializer, RequestSender
 from game_actors_and_handlers.wood_graves import GainMaterialEventHandler
 from game_actors_and_handlers.roulettes import GameResultHandler
 
@@ -100,18 +100,20 @@ class Test(unittest.TestCase):
     def testSendShouldCallSendRequestAndReturnResponseDict(self):
         BASE_REQUEST_ID = 49
         CLIENT_VERSION = 10000
+        USER_ID = 100000
+        AUTH_KEY = 'AUTH_KEY'
 
         # setup
         game_server_connection = Mock()
         game_server_connection.sendRequest = Mock(return_value=calcCRC('{}')
                                                   + "${}")
-        game = self.createGame(game_server_connection)
-        game._getInitialId = lambda: BASE_REQUEST_ID
-        game._createFactory(BASE_REQUEST_ID)
-        game._setClientVersion(CLIENT_VERSION)
+        factory = message_factory.Factory(Session(USER_ID, AUTH_KEY,
+                                                  CLIENT_VERSION),
+                                          BASE_REQUEST_ID)
+        sender = RequestSender(factory, game_server_connection)
 
         # exercise
-        game.get_request_sender().send({'type': 'TIME', 'id': BASE_REQUEST_ID})
+        sender.send({'type': 'TIME', 'id': BASE_REQUEST_ID})
 
         # verify
         game_server_connection.sendRequest.assert_called_once_with(
@@ -119,7 +121,7 @@ class Test(unittest.TestCase):
              '{"auth":"ce50b18d6504622d8e04615316fd2151",'
              '"type":"TIME",'
              '"clientVersion":' + str(CLIENT_VERSION) + ','
-             '"user":"' + str(self.USER_ID) + '",'
+             '"user":"' + str(USER_ID) + '",'
              '"id":' + str(BASE_REQUEST_ID) + '}',
              'crc': 'c4acfa714d16e562240d42dfbfcc858e'}
             )
