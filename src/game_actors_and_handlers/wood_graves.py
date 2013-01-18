@@ -3,37 +3,33 @@ import logging
 from game_state.game_types import GameWoodGrave, GameWoodGraveDouble,\
     GamePickItem, GameWoodTree, GameGainItem
 from game_state.game_event import dict2obj
+from game_actors_and_handlers.base import BaseActor
 
 logger = logging.getLogger(__name__)
 
 
-class WoodTargetSelecter(object):
-    def __init__(self, item_reader, game_state, events_sender, timer, options):
-        self.__item_reader = item_reader
-        self.__game_location = game_state.get_game_loc()
-        self.__events_sender = events_sender
-        self.__timer = timer
-        self.__player_brains = game_state.get_brains()
+class WoodTargetSelecter(BaseActor):
 
     def perform_action(self):
         # get all free workers
-        wood_graves = self.__game_location.get_all_objects_by_types([
+        wood_graves = self._get_game_location().get_all_objects_by_types([
             GameWoodGrave.type,
             GameWoodGraveDouble.type
         ])
         # get free workers
         free_workers = []
         for wood_grave in wood_graves:
-            if not self.__player_brains.is_busy(wood_grave):
+            if not self._get_player_brains().is_busy(wood_grave):
                 free_workers.append(wood_grave)
         # get any free worker
         if free_workers:
             free_worker = free_workers[0]
             # check brains count
-            if self.__player_brains.has_sufficient_brains_count(free_worker):
+            if self._get_player_brains().has_sufficient_brains_count(
+                                                                free_worker):
                 logger.info("Отправляем зомби на работу")
                 # select any wood tree
-                trees = self.__game_location.get_all_objects_by_type(
+                trees = self._get_game_location().get_all_objects_by_type(
                     GameWoodTree.type
                 )
                 if trees:
@@ -44,27 +40,22 @@ class WoodTargetSelecter(object):
                     else:
                         logger.info("Рубим дерево")
                         gain_event = GameGainItem(tree.id, free_worker.id)
-                        self.__events_sender.send_game_events([gain_event])
+                        self._get_events_sender().send_game_events(
+                                                            [gain_event])
                 else:
                     logger.info("Не осталось деревьев")
 
 
-class WoodPicker(object):
-    def __init__(self, item_reader, game_state,
-                  events_sender, timer, options):
-        self.__item_reader = item_reader
-        self.__game_location = game_state.get_game_loc()
-        self.__events_sender = events_sender
-        self.__timer = timer
+class WoodPicker(BaseActor):
 
     def perform_action(self):
-        wood_graves = self.__game_location.get_all_objects_by_type(
+        wood_graves = self._get_game_location().get_all_objects_by_type(
                             GameWoodGrave.type)
-        wood_graves += self.__game_location.get_all_objects_by_type(
+        wood_graves += self._get_game_location().get_all_objects_by_type(
                             GameWoodGraveDouble.type)
         for wood_grave in wood_graves:
             for material_id in list(wood_grave.materials):
-                material = self.__item_reader.get(material_id)
+                material = self._get_item_reader().get(material_id)
                 name = material.name
                 logger.info(u'Подбираем ' + name)
                 self._pick_material(wood_grave, material.id)
@@ -73,7 +64,7 @@ class WoodPicker(object):
 
     def _pick_material(self, wood_grave, material_id):
         pick_item = GamePickItem(itemId=material_id, objId=wood_grave.id)
-        self.__events_sender.send_game_events([pick_item])
+        self._get_events_sender().send_game_events([pick_item])
 
 
 class GainMaterialEventHandler(object):

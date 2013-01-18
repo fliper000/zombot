@@ -1,23 +1,18 @@
 # coding=utf-8
 import logging
 from game_state.game_types import GameBuilding, GamePlayGame
+from game_actors_and_handlers.base import BaseActor
 
 logger = logging.getLogger(__name__)
 
 
-class RouletteRoller(object):
-    def __init__(self, item_reader, game_state,
-                  events_sender, timer, options):
-        self.__item_reader = item_reader
-        self.__game_location = game_state.get_game_loc()
-        self.__events_sender = events_sender
-        self.__timer = timer
+class RouletteRoller(BaseActor):
 
     def perform_action(self):
-        buildings = self.__game_location.get_all_objects_by_type(
+        buildings = self._get_game_location().get_all_objects_by_type(
                         GameBuilding.type)
         for building in list(buildings):
-            building_item = self.__item_reader.get(building.item)
+            building_item = self._get_item_reader().get(building.item)
             for game in building_item.games:
                 game_id = game.id
                 play_cost = None
@@ -29,7 +24,7 @@ class RouletteRoller(object):
                     next_play = int(next_play_times[game_id])
                 if (
                         next_play and
-                        self.__timer.has_elapsed(next_play) and
+                        self._get_timer().has_elapsed(next_play) and
                         play_cost is None
                 ):
                     logger.info(
@@ -39,7 +34,7 @@ class RouletteRoller(object):
                         u" по координатам (" +
                         str(building.x) + u", " + str(building.y) + u")")
                     roll = GamePlayGame(building.id, game_id)
-                    self.__events_sender.send_game_events([roll])
+                    self._get_events_sender().send_game_events([roll])
 
 
 class GameResultHandler(object):

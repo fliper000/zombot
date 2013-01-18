@@ -2,46 +2,43 @@
 import logging
 from game_state.game_types import GamePlant, GameFruitTree, GameSlag,\
     GameDigItem, GamePickItem, GameBuyItem
+from game_actors_and_handlers.base import BaseActor
 logger = logging.getLogger(__name__)
 
 
-class HarvesterBot():
-    def __init__(self, item_reader, game_state,
-                  events_sender, timer, options):
-        self.__item_reader = item_reader
-        self.__game_location = game_state.get_game_loc()
-        self.__events_sender = events_sender
-        self.__timer = timer
+class HarvesterBot(BaseActor):
 
     def perform_action(self):
-        plants = self.__game_location.get_all_objects_by_type(GamePlant.type)
-        trees = self.__game_location.get_all_objects_by_type(
+        plants = self._get_game_location().get_all_objects_by_type(
+            GamePlant.type)
+        trees = self._get_game_location().get_all_objects_by_type(
             GameFruitTree.type)
         harvestItems = plants + trees
         for harvestItem in list(harvestItems):
             self._pick_harvest(harvestItem)
 
-        slags = self.__game_location.get_all_objects_by_type(GameSlag.type)
+        slags = self._get_game_location().get_all_objects_by_type(
+            GameSlag.type)
         for slag in list(slags):
-            item = self.__item_reader.get(slag.item)
+            item = self._get_item_reader().get(slag.item)
             logger.info(u"Копаем '" + item.name + "' " + str(slag.id) +
                         u" по координатам (" +
                         str(slag.x) + ", " + str(slag.y) + u")")
             dig_event = GameDigItem(slag.id)
-            self.__events_sender.send_game_events([dig_event])
+            self._get_events_sender().send_game_events([dig_event])
             # convert slag to ground
             slag.type = 'base'
             slag.item = '@GROUND'
 
     def _pick_harvest(self, harvestItem):
-        if self.__timer.has_elapsed(harvestItem.jobFinishTime):
-            item = self.__item_reader.get(harvestItem.item)
+        if self._get_timer().has_elapsed(harvestItem.jobFinishTime):
+            item = self._get_item_reader().get(harvestItem.item)
             logger.info(u"Собираем '" + item.name + "' " +
                         str(harvestItem.id) +
                         u" по координатам (" +
                         str(harvestItem.x) + u", " + str(harvestItem.y) + u")")
             pick_event = GamePickItem(objId=harvestItem.id)
-            self.__events_sender.send_game_events([pick_event])
+            self._get_events_sender().send_game_events([pick_event])
             if harvestItem.type == GamePlant.type:
                 # convert plant to slag
                 harvestItem.type = GameSlag.type
@@ -50,26 +47,20 @@ class HarvesterBot():
                 harvestItem.fruitingCount -= 1
                 if harvestItem.fruitingCount == 0:
                     # remove fruit tree
-                    self.__game_location.remove_object_by_id(harvestItem.id)
+                    self._get_game_location().remove_object_by_id(
+                                                                harvestItem.id)
                     # harvestItem.type = GamePickItem.type
                     # TODO convert to pickup box
                     # convert tree to pick item
 
 
-class SeederBot(object):
-
-    def __init__(self, item_reader, game_state,
-                  events_sender, timer, options):
-        self.__item_reader = item_reader
-        self.__game_location = game_state.get_game_loc()
-        self.__events_sender = events_sender
-        self.__selected_seed = options[self.__class__.__name__]
+class SeederBot(BaseActor):
 
     def perform_action(self):
-        grounds = self.__game_location.get_all_objects_by_type('ground')
+        grounds = self._get_game_location().get_all_objects_by_type('ground')
         for ground in list(grounds):
-            item = self.__item_reader.get(ground.item)
-            seed_item = self.__item_reader.get(self.__selected_seed)
+            item = self._get_item_reader().get(ground.item)
+            seed_item = self._get_item_reader().get(self._get_options())
             logger.info(u"Сеем '" + seed_item.name +
                         u"' на '" + item.name + u"' " +
                         str(ground.id) +
@@ -78,7 +69,7 @@ class SeederBot(object):
             buy_event = GameBuyItem(unicode(seed_item.id),
                                     ground.id,
                                     ground.y, ground.x)
-            self.__events_sender.send_game_events([buy_event])
+            self._get_events_sender().send_game_events([buy_event])
             ground.type = u'plant'
             ground.item = unicode(seed_item.id)
 
