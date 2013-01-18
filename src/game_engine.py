@@ -19,7 +19,7 @@ from game_actors_and_handlers.roulettes import RouletteRoller, \
     GameResultHandler
 from game_actors_and_handlers.wood_graves import WoodPicker, \
     GainMaterialEventHandler, WoodTargetSelecter
-from game_actors_and_handlers.pickups import Pickuper
+from game_actors_and_handlers.pickups import Pickuper, AddPickupHandler
 from game_state.brains import PlayerBrains
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,7 @@ class GameLocation():
     def __init__(self, item_reader, game_location):
         self.__item_reader = item_reader
         self.__game_location = game_location
+        self.__pickups = []
 
     def append_object(self, obj):
         self.get_game_objects().append(obj)
@@ -69,6 +70,15 @@ class GameLocation():
         for game_object in list(self.get_game_objects()):
             if game_object.id == obj_id:
                 self.get_game_objects().remove(game_object)
+
+    def get_pickups(self):
+        return tuple(self.__pickups)
+
+    def add_pickups(self, pickups):
+        self.__pickups += pickups
+
+    def remove_pickup(self, pickup):
+        self.__pickups.remove(pickup)
 
 
 class GameTimer(object):
@@ -303,6 +313,7 @@ class Game():
         item_reader = self.__itemReader
         game_state = self.__game_state_
         actor_classes = [
+            Pickuper,
             GiftReceiverBot,
             HarvesterBot,
             SeederBot,
@@ -324,13 +335,11 @@ class Game():
             actor.perform_action()
 
     def handleEvent(self, event_to_handle):
-        events_sender = self.__game_events_sender
         if event_to_handle.action == 'addGift':
             AddGiftEventHandler(self.get_game_state()).handle(event_to_handle)
         elif event_to_handle.action == 'add':
             if event_to_handle.type == 'pickup':
-                Pickuper(self.__itemReader, self.get_game_loc(), events_sender,
-                         self.__timer).pickPickups(event_to_handle.pickups)
+                AddPickupHandler(self.get_game_loc()).handle(event_to_handle)
         elif event_to_handle.type == GameFertilizePlant.type:
             PlantEventHandler(self.get_game_loc()).handle(event_to_handle)
         elif event_to_handle.type == GamePlayGame.type:
