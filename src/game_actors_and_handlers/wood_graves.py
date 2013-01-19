@@ -1,7 +1,7 @@
 # coding=utf-8
 import logging
 from game_state.game_types import GameWoodGrave, GameWoodGraveDouble,\
-    GamePickItem, GameWoodTree, GameGainItem
+    GamePickItem, GameWoodTree, GameGainItem, GamePickup
 from game_state.game_event import dict2obj
 from game_actors_and_handlers.base import BaseActor
 
@@ -114,7 +114,7 @@ class GainMaterialEventHandler(object):
                         logger.info("Ресурсы исчерпаны!")
                         box_item = self.__item_reader.get(target_item.box)
                         new_obj = dict2obj({'item': '@' + box_item.id,
-                                            'type': box_item.type,
+                                            'type': GamePickup.type,
                                             'id': target_id})
                         self.get_game_loc().remove_object_by_id(target_id)
                         self.get_game_loc().append_object(new_obj)
