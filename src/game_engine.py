@@ -22,6 +22,7 @@ from game_actors_and_handlers.wood_graves import WoodPicker, \
 from game_actors_and_handlers.pickups import Pickuper, AddPickupHandler,\
     BoxPickuper
 from game_state.brains import PlayerBrains
+import socket
 
 logger = logging.getLogger(__name__)
 
@@ -267,18 +268,25 @@ class Game():
 
     def start(self):
 
-        start_response = self.__game_initializer.start()
+        while(True):
+            try:
+                start_response = self.__game_initializer.start()
 
-        self.save_game_state(start_response)
+                self.save_game_state(start_response)
 
-        self.select_plant_seed()
+                self.select_plant_seed()
 
-        self.create_all_actors()
+                self.create_all_actors()
 
-        # TODO send getMissions
-        # TODO handle getMissions response
+                # TODO send getMissions
+                # TODO handle getMissions response
 
-        self.eventLoop()
+                self.eventLoop()
+            except socket.timeout:
+                seconds = 3
+                logger.error('Timeout occurred, retrying in %s seconds...'
+                             % seconds)
+                time.sleep(seconds)
 
     def save_game_state(self, start_response):
         # parse game state
