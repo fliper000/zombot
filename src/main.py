@@ -1,3 +1,4 @@
+# coding=utf-8
 from game_engine import Game
 from connection import Connection
 from settings import Settings
@@ -31,6 +32,11 @@ def setup_logging(user_name):
     unknownEventLogger = logging.getLogger('unknownEventLogger')
     unknownEventLogger.propagate = False
     unknownEventLogger.addHandler(
+        logging.FileHandler(log_directory + '/unknown_events.log')
+    )
+    game_engine_logger = logging.getLogger('game_engine')
+    game_engine_logger.propagate = False
+    game_engine_logger.addHandler(
         logging.FileHandler(log_directory + '/unknown_events.log')
     )
 
