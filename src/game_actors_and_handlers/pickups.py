@@ -29,7 +29,7 @@ class BoxPickuper(BaseActor):
                                                     GamePickup.type)
         for box in boxes:
             name = self._get_item_reader().get_name(box)
-            logger.info('Вскрываем ' + name)
+            logger.info(u'Вскрываем ' + name)
             pick_event = GamePickItem(objId=box.id)
             self._get_events_sender().send_game_events([pick_event])
             self._get_game_location().remove_object_by_id(box.id)
