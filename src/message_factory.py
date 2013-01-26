@@ -107,7 +107,8 @@ class Factory():
                          "sex", "city", "last_name"]
             data_value['info'] = collections.OrderedDict()
             for info_key in info_keys:
-                data_value['info'][info_key] = datacopy['info'][info_key]
+                if info_key in datacopy['info']:
+                    data_value['info'][info_key] = datacopy['info'][info_key]
         self.__addSigOrAuth(data_value)
         result = json.dumps(data_value, separators=(',', ':'),
                             ensure_ascii=False, encoding="utf-8")

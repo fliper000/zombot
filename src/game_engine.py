@@ -185,6 +185,10 @@ class GameInitializer():
             uids=self.__session.getUserId(), format='json',
             fields='bdate,sex,first_name,last_name,city,country')
         info = info[0]
+        if 'bdate' in info:
+            bdate = info['bdate']
+        else:
+            bdate = None
         my_country = api.places.getCountryById(cids=int(info['country']))[0]
         info['country'] = my_country['name']
         my_city = api.places.getCityById(cids=int(info['city']))[0]
@@ -192,7 +196,7 @@ class GameInitializer():
         game_info = GameInfo(city=info['city'], first_name=info['first_name'],
                  last_name=info['last_name'],
                  uid=long(info['uid']), country=info['country'],
-                 sex=long(info['sex']), bdate=info['bdate'])
+                 sex=long(info['sex']), bdate=bdate)
         return game_info
 
 
