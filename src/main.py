@@ -19,11 +19,17 @@ def mkdir_p(path):
             raise
 
 
+class MyLogger(logging.StreamHandler):
+
+    def write(self, message):
+      print message.decode('utf-8'),
+
+
 def setup_logging(user_name):
     log_directory = 'logs/' + user_name
     mkdir_p(log_directory)
     FORMAT = '%(asctime)-15s %(message)s'
-    logging.basicConfig(level=logging.INFO, format=FORMAT)
+    logging.basicConfig(level=logging.INFO, format=FORMAT, stream=MyLogger())
     connection_logger = logging.getLogger('connection')
     connection_logger.propagate = False
     connection_logger.addHandler(
@@ -37,7 +43,7 @@ def setup_logging(user_name):
     game_engine_logger = logging.getLogger('game_engine')
     game_engine_logger.propagate = False
     game_engine_logger.addHandler(
-        logging.FileHandler(log_directory + '/unknown_events.log')
+        logging.FileHandler(log_directory + '/game_engine.log')
     )
 
 
