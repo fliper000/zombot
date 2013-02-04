@@ -67,6 +67,9 @@ class Session():
     def getAuthKey(self):
         return self.__auth_key
 
+    def set_auth_key(self, auth_key):
+        self.__auth_key = auth_key
+
     def getAuthSessionKey(self):
         return self.__auth_session_key
 
@@ -141,6 +144,8 @@ class Factory():
     def setSessionKey(self, session_key):
         self.__session.setSessionKey(session_key)
 
+    def set_auth_key(self, auth_key):
+        self.__session.set_auth_key(auth_key)
 
 class Request():
     '''

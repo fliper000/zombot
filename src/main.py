@@ -47,23 +47,25 @@ def setup_logging(user_name):
     )
 
 
-def read_params():
+def get_vk():
     settings = Settings()
     users = settings.getUsers()
     selected_user = UserPrompt().prompt_user('Select user:', users)
     settings.setUser(selected_user)
-    params = vkutils.VK(settings).getAppParams('612925')
-    user_id = params['viewer_id']
-    auth_key = params['auth_key']
-    access_token = params['access_token']
-    return (user_id, auth_key, access_token)
+    vk = vkutils.VK(settings)
+    return vk
 
 
 def run_game():
-    (user_id, auth_key, access_token) = read_params()
+    vk = get_vk()
+    params = vk.getAppParams('612925')
+    user_id = params['viewer_id']
+    auth_key = params['auth_key']
+    access_token = params['access_token']
+
     setup_logging(str(user_id))
     connection = Connection('http://java.shadowlands.ru/zombievk/go')
-    Game(connection, user_id, auth_key, access_token, UserPrompt()).start()
+    Game(connection, user_id, auth_key, access_token, UserPrompt(), vk=vk).start()
 
 
 if __name__ == '__main__':

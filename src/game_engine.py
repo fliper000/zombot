@@ -3,6 +3,8 @@ import random
 import message_factory
 from message_factory import Session
 import vkontakte
+from settings import Settings
+import vkutils
 import logging
 import time
 from game_state.item_reader import GameItemReader, GameSeedReader
@@ -25,6 +27,7 @@ from game_state.brains import PlayerBrains
 import socket
 
 logger = logging.getLogger(__name__)
+
 
 
 class GameLocation():
@@ -138,12 +141,13 @@ class GameEventsSender(object):
 
 class GameInitializer():
     def __init__(self, timer, request_sender, factory, access_token,
-                 session):
+                 session, vk):
         self.__timer = timer
         self.__request_sender = request_sender
         self.__factory = factory
         self.__access_token = access_token
         self.__session = session
+        self.__vk = vk
 
     def start(self):
         # send TIME request (http://java.shadowlands.ru/zombievk/go)
@@ -159,6 +163,13 @@ class GameInitializer():
         '''
         Returns key (string) and time (int)
         '''
+        params = self.__vk.getAppParams('612925')
+        auth_key = params['auth_key']
+        self.__request_sender.set_auth_key(auth_key)
+        self.__request_sender.set_url("http://java.shadowlands.ru/zombievk/go")
+        self.__request_sender.clear_session()
+        self.__request_sender.reset_request_id()
+
         command = GameTIME()
         response = self.__request_sender.send(command)
         return response.key, response.time
@@ -233,15 +244,20 @@ class Game():
     CLIENT_VERSION = long(1352868088)
 
     def __init__(self, connection, user_id, auth_key, access_token,
-                  user_prompt, game_item_reader=None):
+                  user_prompt, game_item_reader=None, vk=None):
         self.__connection = connection
         self.__session = Session(user_id, auth_key,
                                  client_version=Game.CLIENT_VERSION
                                  )
-        self.__factory = message_factory.Factory(self.__session, None)
-        self.__request_sender = RequestSender(self.__factory,
+        factory = message_factory.Factory(self.__session, None)
+        self.__request_sender = RequestSender(factory,
                                               self.__connection)
         self.__game_events_sender = GameEventsSender(self.__request_sender)
+        self.__timer = GameTimer()
+        self.__game_initializer = GameInitializer(self.__timer,
+                                                  self.get_request_sender(),
+                                                  factory, access_token,
+                                                  self.__session, vk)
 
         # load items dictionary
         if game_item_reader is None:
@@ -254,11 +270,6 @@ class Game():
         self.__selected_seed = None
         self.__receive_gifts_with_messages = False
         self.__receive_non_free_gifts = False
-        self.__timer = GameTimer()
-        self.__game_initializer = GameInitializer(self.__timer,
-                                                  self.get_request_sender(),
-                                                  self.__factory, access_token,
-                                                  self.__session)
 
     def select_plant_seed(self):
         level = self.get_game_state().level
@@ -266,9 +277,10 @@ class Game():
         seed_reader = GameSeedReader(self.__itemReader)
         available_seeds = seed_reader.getAvailablePlantSeedsDict(level,
                                                                  location)
-        seed_name = self.__user_prompt.prompt_user('Plant to seed:',
-                                                   available_seeds.keys())
-        self.__selected_seed = available_seeds[seed_name]
+        if self.__selected_seed is None:
+            seed_name = self.__user_prompt.prompt_user('Plant to seed:',
+                                                       available_seeds.keys())
+            self.__selected_seed = available_seeds[seed_name]
 
     def start(self):
 
@@ -387,3 +399,16 @@ class RequestSender(object):
         assert 'type' in data
         request = self.__factory.createRequest(data)
         return dict2obj(request.send(self.__connection))
+
+    def set_url(self, url):
+        self.__connection.setUrl(url)
+
+    def clear_session(self):
+        self.__factory.setSessionKey(None)
+
+    def reset_request_id(self):
+        request_id = message_factory._getInitialId()
+        self.__factory.setRequestId(request_id)
+
+    def set_auth_key(self, auth_key):
+        self.__factory.set_auth_key(auth_key)
