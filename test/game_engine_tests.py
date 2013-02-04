@@ -273,5 +273,5 @@ class Test(unittest.TestCase):
         self.assertEqual([obj2dict(wood_grave), {
                                     'item': u'@SC_PICKUP_BOX_WOOD6',
                                     'id': TARGET_ID,
-                                    'type': u'pickupBox'}],
+                                    'type': u'pickup'}],
                          obj2dict(location.gameObjects))
