@@ -20,11 +20,15 @@ from game_actors_and_handlers.plants import HarvesterBot, SeederBot, \
 from game_actors_and_handlers.roulettes import RouletteRoller, \
     GameResultHandler
 from game_actors_and_handlers.wood_graves import WoodPicker, \
-    GainMaterialEventHandler, WoodTargetSelecter
+    WoodTargetSelecter
+from game_actors_and_handlers.stone_graves import StonePicker, \
+    StoneTargetSelecter
+from game_actors_and_handlers.workers import GainMaterialEventHandler
 from game_actors_and_handlers.pickups import Pickuper, AddPickupHandler,\
     BoxPickuper
 from game_state.brains import PlayerBrains
 import socket
+import urllib2
 
 logger = logging.getLogger(__name__)
 
@@ -298,7 +302,9 @@ class Game():
                 # TODO handle getMissions response
 
                 self.eventLoop()
-            except socket.timeout:
+            except urllib2.HTTPError, e:
+                raise e
+            except (socket.timeout, urllib2.HTTPError, urllib2.URLError):
                 seconds = 3
                 logger.error('Timeout occurred, retrying in %s seconds...'
                              % seconds)
@@ -351,6 +357,8 @@ class Game():
             RouletteRoller,
             WoodPicker,
             WoodTargetSelecter,
+            StonePicker,
+            StoneTargetSelecter,
         ]
         self.__actors = []
         for actor_class in actor_classes:

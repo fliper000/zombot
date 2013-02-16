@@ -2021,6 +2021,8 @@ class GameStone(GameType):
         self.x = x
         self.y = y
 
+class GameStoneGraveDouble(GameType):
+    type = 'stoneGraveDouble'
 
 class GameStoneGrave(GameType):
     type = 'stoneGrave'
