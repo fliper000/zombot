@@ -303,7 +303,7 @@ class Game():
                 logger.error('Timeout occurred, retrying in %s seconds...'
                              % seconds)
                 time.sleep(seconds)
-            except socket.timeout:
+            except (socket.error, ssl.SSLError) as e:
                 seconds = 10
                 logger.error('Socket error occurred, retrying in %s seconds...'
                              % seconds)
