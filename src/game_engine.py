@@ -1,5 +1,6 @@
 # coding=utf-8
 import random
+import ssl
 import message_factory
 from message_factory import Session
 import vkontakte
