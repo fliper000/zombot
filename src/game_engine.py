@@ -303,6 +303,11 @@ class Game():
                 logger.error('Timeout occurred, retrying in %s seconds...'
                              % seconds)
                 time.sleep(seconds)
+            except socket.timeout:
+                seconds = 10
+                logger.error('Socket error occurred, retrying in %s seconds...'
+                             % seconds)
+                time.sleep(seconds)
 
     def save_game_state(self, start_response):
         # parse game state
