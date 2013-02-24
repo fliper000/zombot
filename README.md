@@ -7,7 +7,7 @@ Tested only on Linux.
 
 Dependencies: python, git
 
-1. Clone repository
+1. Clone repository, (`git clone`, `git submodule init`, `git submodule update`)
 2. Copy and edit settings.example.ini to settings.ini
 3. ./run.sh
 
