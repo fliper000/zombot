@@ -11,7 +11,7 @@ class VK():
     def getAppParams(self, app_id, session_cookies=None):
         if session_cookies is None:
             session_cookies = self._getSessionCookies()
-        vk = Connection('http://vk.com/app' + str(app_id))
+        vk = Connection('https://vk.com/app' + str(app_id))
         html = vk.sendRequest(None, cookies=session_cookies)
         params = None
         if html:
@@ -45,7 +45,7 @@ class VK():
                     '_origin': 'http://vk.com',
                     'email': username,
                     'pass': password}
-            vk = Connection('http://login.vk.com/?act=login')
+            vk = Connection('https://login.vk.com/?act=login')
             session_cookies = vk.sendRequest(post, getCookies=True)
             session_cookies = ('Cookie:' +
                                session_cookies.output(attrs=[],
