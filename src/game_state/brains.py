@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 class PlayerBrains(object):
 
     zombies_brains_required = {
+        'woodGrave': 1,
         'woodGraveDouble': 2,
         'cookGrave': 2,
         'cookGraveWithBrains': 0,
