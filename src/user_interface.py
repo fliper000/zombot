@@ -1,4 +1,11 @@
 # coding=utf-8
+
+import sys
+if len(sys.argv) != 2 or sys.argv[1] != '-c':
+    import gui
+    raw_input = gui.raw_input
+
+
 class UserPrompt(object):
 
     def prompt_user(self, prompt_string, choice):
