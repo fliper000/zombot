@@ -155,6 +155,7 @@ class GameInitializer():
         self.__vk = vk
 
     def start(self):
+        logger.info('Загружаем остров...')
         # send TIME request (http://java.shadowlands.ru/zombievk/go)
         # handle redirect (save new url: http://95.163.80.20/zombievk)
         # parse auth key and time id
@@ -249,7 +250,7 @@ class Game():
     CLIENT_VERSION = long(1352868088)
 
     def __init__(self, connection, user_id, auth_key, access_token,
-                  user_prompt, game_item_reader=None, vk=None):
+                  user_prompt, game_item_reader=None, vk=None, gui_input=None):
         self.__connection = connection
         self.__session = Session(user_id, auth_key,
                                  client_version=Game.CLIENT_VERSION
@@ -275,6 +276,7 @@ class Game():
         self.__selected_seed = None
         self.__receive_gifts_with_messages = False
         self.__receive_non_free_gifts = False
+        self.__gui_input = gui_input
 
     def select_plant_seed(self):
         level = self.get_game_state().level
@@ -287,9 +289,16 @@ class Game():
                                                        available_seeds.keys())
             self.__selected_seed = available_seeds[seed_name]
 
+    def running(self):
+        if self.__gui_input:
+            running = self.__gui_input.running
+        else:
+            running = lambda: True
+        return running()
+
     def start(self):
 
-        while(True):
+        while(self.running()):
             try:
                 start_response = self.__game_initializer.start()
 
@@ -332,13 +341,18 @@ class Game():
         send EVT request
         handle EVT response
         '''
-        while(True):
-            self.__game_events_sender.send_game_events()
-            self.__game_events_sender.print_game_events()
-            for event in self.__game_events_sender.get_game_events():
-                self.handleEvent(event)
-            self.perform_all_actions()
-            time.sleep(30)
+        interval = 30
+        seconds = interval
+        while(self.running()):
+            if seconds == interval:
+                self.__game_events_sender.send_game_events()
+                self.__game_events_sender.print_game_events()
+                for event in self.__game_events_sender.get_game_events():
+                    self.handleEvent(event)
+                self.perform_all_actions()
+                seconds = 0
+            time.sleep(0.1)
+            seconds += 0.1
 
     def create_all_actors(self):
         receive_options = {'with_messages': self.__receive_gifts_with_messages,

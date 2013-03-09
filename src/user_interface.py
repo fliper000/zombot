@@ -1,12 +1,13 @@
 # coding=utf-8
 
-import sys
-if len(sys.argv) != 2 or sys.argv[1] != '-c':
-    import gui
-    raw_input = gui.raw_input
-
 
 class UserPrompt(object):
+
+    def __init__(self, gui_input=None):
+        self.gui_input = None
+        if gui_input:
+            import  gui
+            self.gui_input = gui.InputClass(gui_input)
 
     def prompt_user(self, prompt_string, choice):
         if len(choice) == 0:
@@ -19,7 +20,10 @@ class UserPrompt(object):
                                              # in Python3
                                              # http://bugs.python.org/issue7768
         while True:
-            user_input = raw_input(prompt_string + "\n")
+            if self.gui_input:
+                user_input = self.gui_input.raw_input(prompt_string)
+            else:
+                user_input = raw_input(prompt_string + "\n")
             try:
                 selected_index = int(user_input) - 1
                 if self.is_valid(selected_index, choice):

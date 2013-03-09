@@ -1,19 +1,33 @@
 import sys
 from PyQt4 import QtGui
-app = QtGui.QApplication(sys.argv)
+import logging
+
+class MyLogger(logging.StreamHandler):
+
+    def __init__(self, gui_logger):
+        super(MyLogger, self).__init__()
+        self.gui_logger = gui_logger
+
+    def write(self, message):
+        self.gui_logger.append_log(message.decode('utf-8').strip('\n'))
 
 
-def raw_input(prompt):
-    prompt = prompt.decode('utf-8')
-    title = prompt.split('\n')[0].split(':')[0]
-    input_dialog = QtGui.QInputDialog()
-    items = filter(None, prompt.split('\n')[1:])
-    input_dialog.setComboBoxItems(items)
-    input_dialog.setLabelText(title)
-    input_dialog.setOptions(QtGui.QInputDialog.UseListViewForComboBoxItems)
-    done = input_dialog.exec_()
-    user_choice = input_dialog.textValue()
+class InputClass(object):
 
-    if not done:
-        sys.exit(-1)
-    return items.index(unicode(user_choice)) + 1
+    def __init__(self, gui_input):
+        self.gui_input = gui_input
+
+    def raw_input(self, prompt):
+        prompt = prompt.decode('utf-8')
+
+        title = prompt.split('\n')[0].split(':')[0]
+        items = filter(None, prompt.split('\n')[1:])
+
+        self.gui_input.input_dialog(title, items)
+        while not self.gui_input.get_last_dialog_result():
+            pass
+        user_choice, done = self.gui_input.get_last_dialog_result()
+
+        if not done:
+            sys.exit(-1)
+        return items.index(unicode(user_choice)) + 1
