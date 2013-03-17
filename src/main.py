@@ -3,7 +3,7 @@
 from game_engine import Game
 from connection import Connection
 from settings import Settings
-import vkutils
+from sn import Site
 import logging
 import os
 import errno
@@ -46,13 +46,17 @@ def setup_file_logging(user_name):
     )
 
 
-def get_vk(gui_input):
+def strip_special(string):
+    return ''.join(e for e in string if e.isalnum())
+
+def get_site(gui_input):
     settings = Settings()
     users = settings.getUsers()
     selected_user = UserPrompt(gui_input).prompt_user('Select user:', users)
+    setup_file_logging(strip_special(selected_user))
     settings.setUser(selected_user)
-    vk = vkutils.VK(settings)
-    return vk
+    site = Site(settings)
+    return site
 
 
 def run_game(gui_input=None):
@@ -60,19 +64,10 @@ def run_game(gui_input=None):
 
     logger.info('Выбираем пользователя...')
 
-    vk = get_vk(gui_input)
+    site = get_site(gui_input)
 
-    logger.info('Логинимся...')
 
-    params = vk.getAppParams('612925')
-    user_id = params['viewer_id']
-    auth_key = params['auth_key']
-    access_token = params['access_token']
-
-    setup_file_logging(str(user_id))
-
-    connection = Connection('http://java.shadowlands.ru/zombievk/go')
-    Game(connection, user_id, auth_key, access_token, UserPrompt(gui_input), vk=vk, gui_input=gui_input).start()
+    Game(site, UserPrompt(gui_input), gui_input=gui_input).start()
 
 
 MyLogger = None
@@ -84,7 +79,7 @@ if __name__ == '__main__':
         MyLogger = gui.MyLogger
         import app
         app.run_application(run_game)
-        
+
     else:
         import console
         MyLogger = console.MyLogger

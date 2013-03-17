@@ -2089,8 +2089,9 @@ class GameTHANKSGIVING(GameType):
 class GameTIME(GameType):
     type = 'TIME'
 
-    def __init__(self, ):  # @ReservedAssignment
+    def __init__(self, key=None):  # @ReservedAssignment
         self.type = 'TIME'
+        self.key = key
 
 
 class GameThanksgivingTable(GameType):

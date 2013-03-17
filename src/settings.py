@@ -8,6 +8,13 @@ class Settings():
         self.filename = filename
         self._currentUser = None
 
+    def getSite(self):
+        try:
+            return self.parser.get(self._currentUser, 'site')
+        except ConfigParser.NoOptionError:
+            return 'vk'
+
+
     def getUserEmail(self):
         return self.parser.get(self._currentUser, 'user_email')
 

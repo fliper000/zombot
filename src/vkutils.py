@@ -2,6 +2,8 @@ from connection import Connection
 from settings import Settings
 import re
 import json
+from game_state.game_types import GameSTART, GameInfo
+import vkontakte
 
 
 class VK():
@@ -24,6 +26,48 @@ class VK():
             if params is not None:
                 return json.loads(params)
         return params
+
+    def get_game_params(self):
+        params = self.getAppParams('612925')
+        self.__game_api_user_id = params['viewer_id']
+        game_auth_key = params['auth_key']
+        self.__api_access_token = params['access_token']
+        game_url = 'http://java.shadowlands.ru/zombievk/go'
+        connection = Connection(game_url)
+        return (self.__game_api_user_id, game_auth_key, None, connection)
+
+    def get_time_key(self):
+        return None
+
+    def create_start_command(self,server_time, client_time):
+        command = GameSTART(lang=u'en', info=self._getUserInfo(),
+                      ad=u'user_apps', serverTime=server_time,
+                      clientTime=client_time)
+        return command
+
+    def _getUserInfo(self):
+        '''
+        returns user info using vk api
+        '''
+        # get vk user info
+        api = vkontakte.api.API(token=self.__api_access_token)
+        info = api.getProfiles(
+            uids=self.__game_api_user_id, format='json',
+            fields='bdate,sex,first_name,last_name,city,country')
+        info = info[0]
+        if 'bdate' in info:
+            bdate = info['bdate']
+        else:
+            bdate = None
+        my_country = api.places.getCountryById(cids=int(info['country']))[0]
+        info['country'] = my_country['name']
+        my_city = api.places.getCityById(cids=int(info['city']))[0]
+        info['city'] = my_city['name']
+        game_info = GameInfo(city=info['city'], first_name=info['first_name'],
+                 last_name=info['last_name'],
+                 uid=long(info['uid']), country=info['country'],
+                 sex=long(info['sex']), bdate=bdate)
+        return game_info
 
     def _validateSessionCookies(self, session_cookies):
         valid = False
