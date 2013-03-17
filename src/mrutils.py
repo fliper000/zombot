@@ -67,18 +67,18 @@ class MR():
         return valid
 
     def _getSessionCookies(self):
-        # TODO
         session_cookies = self._credentials.getSessionCookies()
         cookies_are_valid = self._validateSessionCookies(session_cookies)
         if not cookies_are_valid:
             username = self._credentials.getUserEmail()
             password = self._credentials.getUserPassword()
             post = {
-                    'email': username,
-                    'pass': password}
-            mr = Connection('MAILRU login here')
+                    'Login': username.split('@')[0],
+                    'Domain': username.split('@')[1],
+                    'Password': password}
+            mr = Connection('https://auth.mail.ru/cgi-bin/auth')
             session_cookies = mr.sendRequest(post, getCookies=True)
-            session_cookies = ('Cookie:' +
+            session_cookies = (
                                session_cookies.output(attrs=[],
                                                       header='', sep=';'))
             self._credentials.setSessionCookies(session_cookies)
