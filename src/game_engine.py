@@ -30,6 +30,7 @@ from game_actors_and_handlers.stone_graves import StonePicker, \
 from game_actors_and_handlers.workers import GainMaterialEventHandler
 from game_actors_and_handlers.pickups import Pickuper, AddPickupHandler,\
     BoxPickuper
+from game_actors_and_handlers.location import ChangeLocationBot
 from game_state.brains import PlayerBrains
 import socket
 import urllib2
@@ -273,6 +274,7 @@ class Game():
             self.__itemReader = game_item_reader
         self.__user_prompt = user_prompt
         self.__selected_seed = None
+        self.__selected_location = None
         self.__receive_gifts_with_messages = False
         self.__receive_non_free_gifts = False
         self.__gui_input = gui_input
@@ -287,6 +289,18 @@ class Game():
             seed_name = self.__user_prompt.prompt_user('Plant to seed:',
                                                        available_seeds.keys())
             self.__selected_seed = available_seeds[seed_name]
+
+    def select_location(self):
+        locations = {}
+        for location in self.get_game_state().locationInfos:
+            name = self.__itemReader.get(location.locationId).name
+            locations[name] = location
+        if locations:
+            location_name = self.__user_prompt.prompt_user(u'Выберите остров:',
+                                                       locations.keys())
+            if location_name in locations:
+                self.__selected_location  = locations[location_name].locationId
+
 
     def running(self):
         if self.__gui_input:
@@ -303,6 +317,10 @@ class Game():
                 self.__game_events_sender = self.__game_initializer.create_events_sender()
 
                 self.save_game_state(start_response)
+
+                self.select_location()
+                change_loc_bot = self.create_change_location_bot()
+                change_loc_bot.perform_action()
 
                 self.select_plant_seed()
 
@@ -358,7 +376,9 @@ class Game():
         receive_options = {'with_messages': self.__receive_gifts_with_messages,
                            'non_free': self.__receive_non_free_gifts}
         options = {'GiftReceiverBot': receive_options,
-                   'SeederBot': self.__selected_seed}
+                   'SeederBot': self.__selected_seed,
+                   'ChangeLocationBot': self.__selected_location,
+                  }
         events_sender = self.__game_events_sender
         timer = self._get_timer()
         item_reader = self.__itemReader
@@ -384,6 +404,16 @@ class Game():
             self.__actors.append(
                 actor_class(item_reader, game_state, events_sender, timer,
                             options))
+
+    def create_change_location_bot(self):
+        options = {'ChangeLocationBot': self.__selected_location,
+                  }
+        events_sender = self.__game_events_sender
+        timer = self._get_timer()
+        item_reader = self.__itemReader
+        game_state = self.__game_state_
+        return ChangeLocationBot(item_reader, game_state, events_sender, timer,
+                            options)
 
     def perform_all_actions(self):
         '''
