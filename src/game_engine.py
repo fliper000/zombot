@@ -145,14 +145,12 @@ class GameEventsSender(object):
 
 
 class GameInitializer():
-    def __init__(self, timer, request_sender, factory, access_token,
-                 session, vk):
+    def __init__(self, timer, site):
         self.__timer = timer
-        self.__request_sender = request_sender
-        self.__factory = factory
-        self.__access_token = access_token
-        self.__session = session
-        self.__vk = vk
+        self.__site = site
+
+    def create_events_sender(self):
+        return GameEventsSender(self.__request_sender)
 
     def start(self):
         logger.info('Загружаем остров...')
@@ -169,25 +167,29 @@ class GameInitializer():
         '''
         Returns key (string) and time (int)
         '''
-        params = self.__vk.getAppParams('612925')
-        auth_key = params['auth_key']
-        self.__request_sender.set_auth_key(auth_key)
-        self.__request_sender.set_url("http://java.shadowlands.ru/zombievk/go")
-        self.__request_sender.clear_session()
-        self.__request_sender.reset_request_id()
-
+        self.__request_sender = self.__create_request_sender()
         command = GameTIME()
         response = self.__request_sender.send(command)
         return response.key, response.time
+
+    def __create_request_sender(self):
+        api_user_id, game_auth_key, api_access_token, connection = self.__site.get_game_params()
+        self.__api_access_token = api_access_token
+        self.__connection = connection
+        self.__session = Session(api_user_id, game_auth_key,
+                                 client_version=Game.CLIENT_VERSION)
+        factory = message_factory.Factory(self.__session, None)
+        request_sender = RequestSender(factory,
+                                       self.__connection)
+        self.__factory = factory
+        return request_sender
 
     def start_game(self, server_time, session_key):
         self.__factory.setRequestId(server_time)
         self.__factory.setSessionKey(session_key)
         client_time = self.__timer._get_client_time()
         start_time = time.time()
-        command = GameSTART(lang=u'en', info=self._getUserInfo(),
-                      ad=u'user_apps', serverTime=server_time,
-                      clientTime=client_time)
+        command = self.__site.create_start_command(server_time, client_time)
         sending_time = (time.time() - start_time) * 1000
         self.__timer._add_sending_time(sending_time)
         return self.__request_sender.send(command)
@@ -197,7 +199,7 @@ class GameInitializer():
         returns user info using vk api
         '''
         # get vk user info
-        api = vkontakte.api.API(token=self.__access_token)
+        api = vkontakte.api.API(token=self.__api_access_token)
         info = api.getProfiles(
             uids=self.__session.getUserId(), format='json',
             fields='bdate,sex,first_name,last_name,city,country')
@@ -249,21 +251,14 @@ class Game():
 
     CLIENT_VERSION = long(1352868088)
 
-    def __init__(self, connection, user_id, auth_key, access_token,
-                  user_prompt, game_item_reader=None, vk=None, gui_input=None):
-        self.__connection = connection
-        self.__session = Session(user_id, auth_key,
-                                 client_version=Game.CLIENT_VERSION
-                                 )
-        factory = message_factory.Factory(self.__session, None)
-        self.__request_sender = RequestSender(factory,
-                                              self.__connection)
-        self.__game_events_sender = GameEventsSender(self.__request_sender)
+    def __init__(self, site,
+                  user_prompt, game_item_reader=None, gui_input=None):
+        logger.info('Логинимся...')
+
+
+
         self.__timer = GameTimer()
-        self.__game_initializer = GameInitializer(self.__timer,
-                                                  self.get_request_sender(),
-                                                  factory, access_token,
-                                                  self.__session, vk)
+        self.__game_initializer = GameInitializer(self.__timer, site)
 
         # load items dictionary
         if game_item_reader is None:
@@ -301,6 +296,7 @@ class Game():
         while(self.running()):
             try:
                 start_response = self.__game_initializer.start()
+                self.__game_events_sender = self.__game_initializer.create_events_sender()
 
                 self.save_game_state(start_response)
 
