@@ -168,7 +168,8 @@ class GameInitializer():
         Returns key (string) and time (int)
         '''
         self.__request_sender = self.__create_request_sender()
-        command = GameTIME()
+        key = self.__site.get_time_key()
+        command = GameTIME(key=key)
         response = self.__request_sender.send(command)
         return response.key, response.time
 
@@ -249,7 +250,7 @@ class GameState():
 
 class Game():
 
-    CLIENT_VERSION = long(1352868088)
+    CLIENT_VERSION = long(1362084734)
 
     def __init__(self, site,
                   user_prompt, game_item_reader=None, gui_input=None):

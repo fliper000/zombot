@@ -36,6 +36,9 @@ class VK():
         connection = Connection(game_url)
         return (self.__game_api_user_id, game_auth_key, None, connection)
 
+    def get_time_key(self):
+        return None
+
     def create_start_command(self,server_time, client_time):
         command = GameSTART(lang=u'en', info=self._getUserInfo(),
                       ad=u'user_apps', serverTime=server_time,

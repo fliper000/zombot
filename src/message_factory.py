@@ -47,7 +47,7 @@ class Session():
     This class represents session data needed
     to authenticate and sign messages
     '''
-    def __init__(self, user_id, auth_key, client_version=1351866062,
+    def __init__(self, user_id, auth_key, client_version=1362084734,
                  session_key=None):
         self.__user_id = user_id          # vk user id
         self.__session_key = session_key  # session key from TIME request
@@ -103,7 +103,8 @@ class Factory():
         datacopy['clientVersion'] = self.__session.CLIENT_VERSION
         data_value = collections.OrderedDict()
         for key in data_keys_order:
-            data_value[key] = datacopy[key]
+            if key in datacopy:
+                data_value[key] = datacopy[key]
         message_type = datacopy['type']
         if message_type == 'START':
             info_keys = ["uid", "bdate", "country", "first_name",
@@ -216,7 +217,7 @@ def _getInitialId():
 def _getDataKeyOrder(message_type):
     keys = []
     if message_type == 'TIME':
-        keys = ['auth', 'type', 'clientVersion', 'user',  'id', ]
+        keys = ['auth', 'type', 'clientVersion', 'user',  'id', 'key' ]
     if message_type == 'START':
         keys = [
             'id',

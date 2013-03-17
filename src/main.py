@@ -3,7 +3,7 @@
 from game_engine import Game
 from connection import Connection
 from settings import Settings
-import vkutils
+from sn import Site
 import logging
 import os
 import errno
@@ -55,7 +55,7 @@ def get_site(gui_input):
     selected_user = UserPrompt(gui_input).prompt_user('Select user:', users)
     setup_file_logging(strip_special(selected_user))
     settings.setUser(selected_user)
-    site = vkutils.VK(settings)
+    site = Site(settings)
     return site
 
 
