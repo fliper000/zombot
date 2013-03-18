@@ -342,7 +342,7 @@ class Game():
         interval = 30
         seconds = interval
         while(self.running()):
-            if seconds == interval:
+            if seconds >= interval:
                 self.__game_events_sender.send_game_events()
                 self.__game_events_sender.print_game_events()
                 for event in self.__game_events_sender.get_game_events():
