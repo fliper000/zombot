@@ -29,29 +29,34 @@ class TargetSelecter(BaseActor):
         for wood_grave in wood_graves:
             if not self._get_player_brains().is_busy(wood_grave):
                 free_workers.append(wood_grave)
-        # get any free worker
-        if free_workers:
-            free_worker = free_workers[0]
+        # for each free worker
+        for free_worker in free_workers:
             # check brains count
             if self._get_player_brains().has_sufficient_brains_count(
                                                                 free_worker):
                 logger.info("Отправляем зомби на работу")
                 # select any wood tree
-                trees = self._get_game_location().get_all_objects_by_type(
+                resources = self._get_game_location().get_all_objects_by_type(
                     self.get_object_type()
                 )
-                if trees:
-                    tree = trees[0]
+                if resources:
                     # make sure gain is not started yet
-                    if tree.gainStarted:
-                        logger.info("Уже рубится")
+                    resource = self.__find_first_gain_not_started(resources)
+                    if not resource:
+                        logger.info("Все ресурсы уже добываются")
                     else:
                         logger.info(self.get_sent_job())
-                        gain_event = GameGainItem(tree.id, free_worker.id)
+                        gain_event = GameGainItem(resource.id, free_worker.id)
                         self._get_events_sender().send_game_events(
                                                             [gain_event])
+                        resource.gainStarted = True
                 else:
-                    logger.info("Не осталось деревьев")
+                    logger.info("Не осталось ресурсов для добычи")
+
+    def __find_first_gain_not_started(self, resources):
+        for resource in resources:
+            if not resource.gainStarted:
+                return resource
 
 
 class ResourcePicker(BaseActor):

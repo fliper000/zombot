@@ -12,6 +12,7 @@ class PlayerBrains(object):
         'cookGrave': 2,
         'cookGraveWithBrains': 0,
         'guardGrave': 1,
+        'stoneGrave': 1,
     }
 
     def __init__(self, game_state, game_location, item_reader):
