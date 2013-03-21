@@ -1,7 +1,6 @@
 # coding=utf-8
 import logging
-from game_state.game_types import GameDiggerGrave, GameDiggerGraveWithBrains,\
-    GamePickItem, GameGainItem, GamePickup
+from game_state.game_types import GameDiggerGrave, GameDiggerGraveWithBrains
 from game_actors_and_handlers.workers import ResourcePicker
 
 logger = logging.getLogger(__name__)
