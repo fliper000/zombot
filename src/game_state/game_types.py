@@ -461,6 +461,19 @@ class GameDigItem(GameAction):
         self.type = 'item'
 
 
+class GameStartTimeGainEvent(GameAction):
+    type = 'timeGain'
+
+    def __init__(self, objId=None, gainDone=None):
+        assert (objId is None
+                or isinstance(objId, long))
+        assert (gainDone is None
+                or isinstance(gainDone, long))
+        self.action = 'start'
+        self.objId = objId
+        self.gainDone = gainDone
+
+
 class GameEVTCommand(CommonEqualityMixin):
     def __init__(self, id=None,  # @ReservedAssignment
                  events=None):  # @ReservedAssignment
