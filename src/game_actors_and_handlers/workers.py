@@ -80,7 +80,6 @@ class ResourcePicker(BaseActor):
         pick_item = GamePickItem(itemId=material_id, objId=wood_grave.id)
         self._get_events_sender().send_game_events([pick_item])
 
-
 class GainMaterialEventHandler(object):
 
     def __init__(self, item_reader, game_location,
