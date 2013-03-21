@@ -13,7 +13,7 @@ from game_state.game_event import dict2obj, obj2dict
 from game_state.game_types import GameEVT, GameTIME, GameSTART, \
     GameInfo, \
     GameFertilizePlant, GamePlayGame, \
-    GameStartGainMaterial
+    GameStartGainMaterial, GameStartTimeGainEvent
 import pprint
 from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
 from game_actors_and_handlers.plants import HarvesterBot, SeederBot, \
@@ -23,7 +23,8 @@ from game_actors_and_handlers.roulettes import RouletteRoller, \
 from game_actors_and_handlers.wood_graves import WoodPicker, \
     WoodTargetSelecter
 from game_actors_and_handlers.cook_graves import BrewPicker
-from game_actors_and_handlers.digger_graves import BagsPicker
+from game_actors_and_handlers.digger_graves import BagsPicker, \
+    TimeGainEventHandler
 from game_actors_and_handlers.stone_graves import StonePicker, \
     StoneTargetSelecter
 from game_actors_and_handlers.workers import GainMaterialEventHandler
@@ -403,6 +404,9 @@ class Game():
         elif event_to_handle.type == GameStartGainMaterial.type:
             GainMaterialEventHandler(self.__itemReader, self.get_game_loc(),
                                      self.__timer).handle(event_to_handle)
+        elif event_to_handle.type == GameStartTimeGainEvent.type:
+            TimeGainEventHandler(self.__itemReader, self.get_game_loc(),
+                                 self.__timer).handler(event_to_handle)
         else:
             self.logUnknownEvent(event_to_handle)
         self.__game_events_sender.remove_game_event(event_to_handle)
