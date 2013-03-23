@@ -406,7 +406,7 @@ class Game():
                                      self.__timer).handle(event_to_handle)
         elif event_to_handle.type == GameStartTimeGainEvent.type:
             TimeGainEventHandler(self.__itemReader, self.get_game_loc(),
-                                 self.__timer).handler(event_to_handle)
+                                 self.__timer).handle(event_to_handle)
         else:
             self.logUnknownEvent(event_to_handle)
         self.__game_events_sender.remove_game_event(event_to_handle)
