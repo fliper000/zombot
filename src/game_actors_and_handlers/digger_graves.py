@@ -3,9 +3,15 @@ import logging
 from game_state.game_types import GameDiggerGrave, GameDiggerGraveWithBrains
 from game_actors_and_handlers.workers import ResourcePicker
 
+
 logger = logging.getLogger(__name__)
 
 class BagsPicker(ResourcePicker):
+    '''
+    {u'gainTime': u'1513587', u'started': True, u'gainDone': 452L, u'item': u'@SC_FISHER_GRAVE_BRAINER', u'materials': 0L, u'y': 24L, u'x': 33L, u'type': u'diggerGraveWithBrains', u'id': 2126L}
+    or
+    {u'started': True, u'gainDone': 452L, u'item': u'@SC_FISHER_GRAVE_BRAINER', u'materials': 3L, u'y': 24L, u'x': 33L, u'type': u'diggerGraveWithBrains', u'id': 2126L}
+    '''
 
     def get_worker_types(self):
         return [GameDiggerGrave.type, GameDiggerGraveWithBrains.type]
@@ -20,9 +26,10 @@ class BagsPicker(ResourcePicker):
                 self._pick_material(grave, None)
                 grave.materials -= 1
 
+
 class TimeGainEventHandler(object):
     '''
-    {"type":"timeGain","action":"start","objId":-3650,"gainDone":418}]
+    {"type":"timeGain","action":"start","objId":23196,"gainDone":452,"gainTime":"1867126"}
     '''
 
     def __init__(self, item_reader, game_location,
@@ -31,10 +38,22 @@ class TimeGainEventHandler(object):
         self.__game_location = game_location
         self.__timer = timer
 
-    def handler(self, event_to_handle):
+    def _get_timer(self):
+        return self.__timer
+
+    def handle(self, event_to_handle):
         gameObject = self.__game_location.get_object_by_id(
             event_to_handle.objId
         )
-        if gameObject.materials < 3:
-            gameObject.materials += 1
-
+        worker = self.__item_reader.get(gameObject.item).name
+        if gameObject.materials < 3 and gameObject.started:
+            if self._get_timer().has_elapsed(gameObject.gainTime):
+                logger.info(worker + u' принёс')
+                gameObject.materials += 1
+                gameObject.gainTime = None
+        if event_to_handle.action == 'start':
+            gameObject.started = True
+            gameObject.gainTime = event_to_handle.gainTime
+            logger.info(worker + u' принесёт через ' + str((int(gameObject.gainTime) - self._get_timer()._get_current_client_time())/1000/60) + u' мин.')
+        else:
+            gameObject.started = False
