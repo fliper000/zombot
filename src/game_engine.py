@@ -19,7 +19,7 @@ from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
 from game_actors_and_handlers.plants import HarvesterBot, SeederBot, \
     PlantEventHandler
 from game_actors_and_handlers.roulettes import RouletteRoller, \
-    GameResultHandler
+    GameResultHandler, CherryRouletteRoller
 from game_actors_and_handlers.wood_graves import WoodPicker, \
     WoodTargetSelecter
 from game_actors_and_handlers.cook_graves import BrewPicker
@@ -370,6 +370,8 @@ class Game():
             HarvesterBot,
             SeederBot,
             RouletteRoller,
+            #Разкомментировать, чтобы слить все вишни
+            #CherryRouletteRoller,
             WoodPicker,
             BrewPicker,
             BagsPicker,
