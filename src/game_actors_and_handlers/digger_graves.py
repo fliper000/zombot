@@ -46,8 +46,7 @@ class TimeGainEventHandler(object):
             event_to_handle.objId
         )
         worker = self.__item_reader.get(gameObject.item).name
-        if gameObject.materials < 3 and gameObject.started:
-            if self._get_timer().has_elapsed(gameObject.gainTime):
+        if hasattr(gameObject, 'gainTime') and gameObject.gainTime and self._get_timer().has_elapsed(gameObject.gainTime):
                 logger.info(worker + u' принёс')
                 gameObject.materials += 1
                 gameObject.gainTime = None
