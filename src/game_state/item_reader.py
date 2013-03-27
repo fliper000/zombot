@@ -64,13 +64,14 @@ class GameSeedReader():
 
     def getAvailablePlantSeedsDict(self, level, location):
         available_seeds = {}
+        location_only = {}
         seed_ids = self._item_reader.get('seed').items
         for seed_id in seed_ids:
             seed = self._item_reader.get(seed_id)
             if (seed.level <= level and
-                    (not hasattr(seed, 'locations') or
-                    location in seed.locations) and
-                    seed.type == 'seed'
-            ):
-                available_seeds[seed.name] = seed.id
-        return available_seeds
+                    seed.type == 'seed'):
+                if not hasattr(seed, 'locations'):
+                    available_seeds[seed.name] = seed.id
+                elif (location in seed.locations):
+                    location_only[seed.name] = seed.id
+        return location_only or available_seeds

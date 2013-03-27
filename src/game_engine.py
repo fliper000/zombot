@@ -30,6 +30,7 @@ from game_actors_and_handlers.stone_graves import StonePicker, \
 from game_actors_and_handlers.workers import GainMaterialEventHandler
 from game_actors_and_handlers.pickups import Pickuper, AddPickupHandler,\
     BoxPickuper
+from game_actors_and_handlers.location import ChangeLocationBot, GameStateEventHandler
 from game_state.brains import PlayerBrains
 import socket
 import urllib2
@@ -226,20 +227,26 @@ class GameInitializer():
 class GameState():
 
     def __init__(self, start_response, item_reader):
+        self.__item_reader = item_reader
         self.__game_state = start_response.state
-        for attr, val in start_response.params.event.__dict__.iteritems():
-            self.__game_state.__setattr__(attr, val)
-
-        self.__game_loc = GameLocation(item_reader,
-                                       start_response.params.event.location)
-        self.get_game_loc().log_game_objects()
-
+        game_state_event = start_response.params.event
+        self.set_game_loc(game_state_event)
         self.__player_brains = PlayerBrains(self.__game_state,
                                             self.get_game_loc(),
                                             item_reader)
         total_brain_count = self.__player_brains.get_total_brains_count()
         occupied_brain_count = self.__player_brains.get_occupied_brains_count()
         logger.info("Мозги: %d/%d" % (occupied_brain_count, total_brain_count))
+
+    def set_game_loc(self, game_state_event):
+        self.__game_loc = GameLocation(self.__item_reader,
+                                       game_state_event.location)
+        for attr, val in game_state_event.__dict__.iteritems():
+            self.__game_state.__setattr__(attr, val)
+        #self.get_game_loc().log_game_objects()
+
+    def get_location_id(self):
+        return self.get_state().locationId
 
     def get_game_loc(self):
         return self.__game_loc
@@ -273,6 +280,7 @@ class Game():
             self.__itemReader = game_item_reader
         self.__user_prompt = user_prompt
         self.__selected_seed = None
+        self.__selected_location = None
         self.__receive_gifts_with_messages = False
         self.__receive_non_free_gifts = False
         self.__gui_input = gui_input
@@ -287,6 +295,18 @@ class Game():
             seed_name = self.__user_prompt.prompt_user('Plant to seed:',
                                                        available_seeds.keys())
             self.__selected_seed = available_seeds[seed_name]
+
+    def select_location(self):
+        locations = {}
+        for location in self.get_game_state().locationInfos:
+            name = self.__itemReader.get(location.locationId).name
+            locations[name] = location
+        if locations:
+            location_name = self.__user_prompt.prompt_user(u'Выберите остров:',
+                                                       locations.keys())
+            if location_name in locations:
+                self.__selected_location  = locations[location_name].locationId
+
 
     def running(self):
         if self.__gui_input:
@@ -303,6 +323,8 @@ class Game():
                 self.__game_events_sender = self.__game_initializer.create_events_sender()
 
                 self.save_game_state(start_response)
+
+#                self.select_location()
 
                 self.select_plant_seed()
 
@@ -345,10 +367,6 @@ class Game():
         seconds = interval
         while(self.running()):
             if seconds >= interval:
-                self.__game_events_sender.send_game_events()
-                self.__game_events_sender.print_game_events()
-                for event in self.__game_events_sender.get_game_events():
-                    self.handleEvent(event)
                 self.perform_all_actions()
                 seconds = 0
             time.sleep(0.1)
@@ -358,12 +376,15 @@ class Game():
         receive_options = {'with_messages': self.__receive_gifts_with_messages,
                            'non_free': self.__receive_non_free_gifts}
         options = {'GiftReceiverBot': receive_options,
-                   'SeederBot': self.__selected_seed}
+                   'SeederBot': self.__selected_seed,
+                   'ChangeLocationBot': self.__selected_location,
+                  }
         events_sender = self.__game_events_sender
         timer = self._get_timer()
         item_reader = self.__itemReader
         game_state = self.__game_state_
         actor_classes = [
+            #ChangeLocationBot,
             Pickuper,
             BoxPickuper,
             GiftReceiverBot,
@@ -389,6 +410,14 @@ class Game():
         '''
         for actor in self.__actors:
             actor.perform_action()
+            self.handle_all_events()
+        self.__game_events_sender.send_game_events()
+        self.handle_all_events()
+
+    def handle_all_events(self):
+        self.__game_events_sender.print_game_events()
+        for event in self.__game_events_sender.get_game_events():
+            self.handleEvent(event)
 
     def handleEvent(self, event_to_handle):
         if event_to_handle.action == 'addGift':
@@ -407,6 +436,8 @@ class Game():
         elif event_to_handle.type == GameStartTimeGainEvent.type:
             TimeGainEventHandler(self.__itemReader, self.get_game_loc(),
                                  self.__timer).handle(event_to_handle)
+        elif event_to_handle.type == 'gameState':
+            GameStateEventHandler(self.__game_state_).handle(event_to_handle)
         else:
             self.logUnknownEvent(event_to_handle)
         self.__game_events_sender.remove_game_event(event_to_handle)
