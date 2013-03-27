@@ -243,7 +243,7 @@ class GameState():
                                        game_state_event.location)
         for attr, val in game_state_event.__dict__.iteritems():
             self.__game_state.__setattr__(attr, val)
-        self.get_game_loc().log_game_objects()
+        #self.get_game_loc().log_game_objects()
 
     def get_location_id(self):
         return self.get_state().locationId
@@ -324,7 +324,7 @@ class Game():
 
                 self.save_game_state(start_response)
 
-                self.select_location()
+#                self.select_location()
 
                 self.select_plant_seed()
 
@@ -384,7 +384,7 @@ class Game():
         item_reader = self.__itemReader
         game_state = self.__game_state_
         actor_classes = [
-            ChangeLocationBot,
+            #ChangeLocationBot,
             Pickuper,
             BoxPickuper,
             GiftReceiverBot,
@@ -412,9 +412,9 @@ class Game():
         '''
         for actor in self.__actors:
             actor.perform_action()
-            self.handler_all_events()
+            self.handle_all_events()
         self.__game_events_sender.send_game_events()
-        self.handler_all_events()
+        self.handle_all_events()
 
     def handle_all_events(self):
         self.__game_events_sender.print_game_events()
