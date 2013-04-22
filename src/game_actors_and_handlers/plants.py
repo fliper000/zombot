@@ -3,6 +3,8 @@ import logging
 from game_state.game_types import GamePlant, GameFruitTree, GameSlag,\
     GameDigItem, GamePickItem, GameBuyItem
 from game_actors_and_handlers.base import BaseActor
+from game_state.item_reader import GameSeedReader
+
 logger = logging.getLogger(__name__)
 
 
@@ -61,6 +63,11 @@ class SeederBot(BaseActor):
         for ground in list(grounds):
             item = self._get_item_reader().get(ground.item)
             seed_item = self._get_item_reader().get(self._get_options())
+            print self._get_available_seeds()
+            print seed_item.id
+            if seed_item.id not in self._get_available_seeds():
+                logger.info(u'Это растение здесь сажать запрещено')
+                return
             logger.info(u"Сеем '" + seed_item.name +
                         u"' на '" + item.name + u"' " +
                         str(ground.id) +
@@ -72,6 +79,15 @@ class SeederBot(BaseActor):
             self._get_events_sender().send_game_events([buy_event])
             ground.type = u'plant'
             ground.item = unicode(seed_item.id)
+
+    def _get_available_seeds(self):
+        level = self._get_game_state().get_state().level
+        location = self._get_game_state().get_game_loc().get_location_id()
+        print location
+        seed_reader = GameSeedReader(self._get_item_reader())
+        available_seeds = seed_reader.getAvailablePlantSeedsDict(level,
+                                                                 location)
+        return available_seeds.values()
 
 
 class PlantEventHandler(object):
