@@ -22,7 +22,7 @@ from game_actors_and_handlers.roulettes import RouletteRoller, \
     GameResultHandler, CherryRouletteRoller
 from game_actors_and_handlers.wood_graves import WoodPicker, \
     WoodTargetSelecter
-from game_actors_and_handlers.cook_graves import BrewPicker
+from game_actors_and_handlers.cook_graves import BrewPicker, BrewSelecter
 from game_actors_and_handlers.digger_graves import BagsPicker, \
     TimeGainEventHandler
 from game_actors_and_handlers.stone_graves import StonePicker, \
@@ -371,9 +371,10 @@ class Game():
             SeederBot,
             RouletteRoller,
             #Разкомментировать, чтобы слить все вишни
-            #CherryRouletteRoller,
+            CherryRouletteRoller,
             WoodPicker,
             BrewPicker,
+            BrewSelecter,
             BagsPicker,
             WoodTargetSelecter,
             StonePicker,

@@ -40,6 +40,7 @@ class RouletteRoller(BaseActor):
 class CherryRouletteRoller(BaseActor):
 
     def perform_action(self):
+        cherrys = 0
         all_items = self._get_game_state().get_state().storageItems
         for one_item in all_items:
             if one_item.item == '@S_52':
@@ -60,6 +61,7 @@ class CherryRouletteRoller(BaseActor):
                 if (
                         next_play and
                         self._get_timer().has_elapsed(next_play) and
+                        #play_cost == '@S_51' #яблоко
                         play_cost == '@S_52'
                 ):
                     for _ in range(cherrys/5):
