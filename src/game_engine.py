@@ -396,7 +396,7 @@ class Game():
             #CherryRouletteRoller,
             WoodPicker,
             BrewPicker,
-            #MagicWand,
+            MagicWand,
             BagsPicker,
             WoodTargetSelecter,
             StonePicker,
