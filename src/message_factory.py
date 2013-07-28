@@ -192,7 +192,7 @@ class Response():
     '''
     def __init__(self, response_string):
         if '$' in response_string:
-            crc, response = response_string.split("$")
+            crc, response = response_string.split("$", 1)
             if(calcCRC(response) != crc):
                 raise ValueError("CRC is invalid: " + crc)
         else:
