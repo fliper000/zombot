@@ -12,6 +12,7 @@ from user_interface import UserPrompt
 
 logger = logging.getLogger('main')
 
+BRANCH = 'master'
 
 def mkdir_p(path):
     try:
@@ -72,7 +73,10 @@ def run_game(gui_input=None):
 
 MyLogger = None
 
+__version__ = '0.9.1 ' + BRANCH
+
 if __name__ == '__main__':
+    print 'github.com/Vanuan/zombot version %s' % __version__
     import sys
     if len(sys.argv) != 2 or sys.argv[1] != '-c':
         import gui
