@@ -76,7 +76,7 @@ MyLogger = None
 __version__ = '0.9.1 ' + BRANCH
 
 if __name__ == '__main__':
-    print 'github.com/Vanuan/zombot version %s' % __version__
+    print '2013 (c) github.com/Vanuan/zombot\n version %s\n\n' % __version__
     import sys
     if len(sys.argv) != 2 or sys.argv[1] != '-c':
         import gui
