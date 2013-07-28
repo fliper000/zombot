@@ -12,7 +12,7 @@ from user_interface import UserPrompt
 
 logger = logging.getLogger('main')
 
-BRANCH = 'master'
+BRANCH = 'stable'
 
 def mkdir_p(path):
     try:
