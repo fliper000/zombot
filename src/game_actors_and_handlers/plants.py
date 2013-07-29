@@ -101,6 +101,6 @@ class PlantEventHandler(object):
         if gameObject is None:
             logger.critical("OMG! No such object")
         gameObject.fertilized = True
-        logger.info('Plant fertilized')
+        logger.info(u'Растение посажено')
         gameObject.jobFinishTime = event_to_handle.jobFinishTime
         gameObject.jobStartTime = event_to_handle.jobStartTime
