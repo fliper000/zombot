@@ -8,7 +8,7 @@ from settings import Settings
 import vkutils
 import logging
 import time
-from game_state.item_reader import GameItemReader, GameSeedReader
+from game_state.item_reader import GameItemReader
 from game_state.game_event import dict2obj, obj2dict
 from game_state.game_types import GameEVT, GameTIME, GameSTART, \
     GameInfo, \
@@ -17,7 +17,7 @@ from game_state.game_types import GameEVT, GameTIME, GameSTART, \
 import pprint
 from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
 from game_actors_and_handlers.plants import HarvesterBot, SeederBot, \
-    PlantEventHandler
+    PlantEventHandler, GameSeedReader
 from game_actors_and_handlers.roulettes import RouletteRoller, \
     GameResultHandler
 from game_actors_and_handlers.wood_graves import WoodPicker, \
@@ -288,15 +288,12 @@ class Game():
         self.__gui_input = gui_input
 
     def select_plant_seed(self):
-        level = self.get_game_state().level
-        location = self.get_game_loc().get_location_id()
         seed_reader = GameSeedReader(self.__itemReader)
-        available_seeds = seed_reader.getAvailablePlantSeedsDict(level,
-                                                                 location)
+        available_seeds = seed_reader.get_avail_seed_names(self.__game_state_)
         if self.__selected_seed is None:
             seed_name = self.__user_prompt.prompt_user('Plant to seed:',
-                                                       available_seeds.keys())
-            self.__selected_seed = available_seeds[seed_name]
+                                                       available_seeds)
+            self.__selected_seed = seed_reader.get_seed_item(seed_name)
 
     def select_location(self):
         locations = {}
