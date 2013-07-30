@@ -270,6 +270,8 @@ class Game():
 
         self.__timer = GameTimer()
         self.__game_initializer = GameInitializer(self.__timer, site)
+        settings = Settings()
+        self.__ignore_errors = settings.get_ignore_errors()
 
         # load items dictionary
         if game_item_reader is None:
@@ -346,6 +348,9 @@ class Game():
                 logger.error('Socket error occurred, retrying in %s seconds...'
                              % seconds)
                 time.sleep(seconds)
+            except message_factory.GameError, e:
+                if not self.__ignore_errors:
+                    raise e
 
     def save_game_state(self, start_response):
         # parse game state

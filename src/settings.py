@@ -14,7 +14,6 @@ class Settings():
         except ConfigParser.NoOptionError:
             return 'vk'
 
-
     def getUserEmail(self):
         return self.parser.get(self._currentUser, 'user_email')
 
@@ -33,7 +32,16 @@ class Settings():
             self.parser.write(fp)
 
     def getUsers(self):
-        return self.parser.sections()
+        return filter(lambda s: s != 'global_settings', self.parser.sections())
 
     def setUser(self, selected_user):
         self._currentUser = selected_user
+
+    def get_ignore_errors(self):
+        try:
+            ignore_errors = self.parser.get('global_settings', 'ignore_errors')
+            if (ignore_errors.lower() == 'true'):
+                return True
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as _:
+            pass
+        return False
