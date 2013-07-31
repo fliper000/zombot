@@ -1,4 +1,5 @@
 import ConfigParser
+import logging
 
 
 class Settings():
@@ -13,7 +14,6 @@ class Settings():
             return self.parser.get(self._currentUser, 'site')
         except ConfigParser.NoOptionError:
             return 'vk'
-
 
     def getUserEmail(self):
         return self.parser.get(self._currentUser, 'user_email')
@@ -33,7 +33,25 @@ class Settings():
             self.parser.write(fp)
 
     def getUsers(self):
-        return self.parser.sections()
+        return filter(lambda s: s != 'global_settings', self.parser.sections())
 
     def setUser(self, selected_user):
         self._currentUser = selected_user
+
+    def get_ignore_errors(self):
+        try:
+            ignore_errors = self.parser.get('global_settings', 'ignore_errors')
+            if (ignore_errors.lower() == 'true'):
+                return True
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as _:
+            pass
+        return False
+
+    def get_file_log_level(self):
+        try:
+            log_to_file = self.parser.get('global_settings', 'log_all')
+            if (log_to_file.lower() == 'true'):
+                return logging.INFO
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as _:
+            pass
+        return logging.ERROR

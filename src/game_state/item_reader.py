@@ -31,7 +31,7 @@ class GameItemReader():
             self.contents = json.load(f)
         for content in self.contents:
             if 'id' not in content:
-                logging.warn("there is no id:" + str(content))
+                logging.debug(u"there is no id: %s" % content)
             else:
                 self.content_dict[content['id']] = content
 
@@ -56,22 +56,3 @@ class GameItemReader():
             pretty_dict = MyPrettyPrinter().pformat(self.content_dict)
             f.write(pretty_dict)
 
-
-class GameSeedReader():
-
-    def __init__(self, game_item_reader):
-        self._item_reader = game_item_reader
-
-    def getAvailablePlantSeedsDict(self, level, location):
-        available_seeds = {}
-        location_only = {}
-        seed_ids = self._item_reader.get('seed').items
-        for seed_id in seed_ids:
-            seed = self._item_reader.get(seed_id)
-            if (seed.level <= level and
-                    seed.type == 'seed'):
-                if not hasattr(seed, 'locations'):
-                    available_seeds[seed.name] = seed.id
-                elif (location in seed.locations):
-                    location_only[seed.name] = seed.id
-        return location_only or available_seeds
