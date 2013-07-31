@@ -129,7 +129,7 @@ class GameEventsSender(object):
 
     def print_game_events(self):
         if len(self.__events_to_handle) > 0:
-            logger.info("received events: " + str(self.__events_to_handle))
+            logger.debug("received events: %s" % self.__events_to_handle)
 
     def get_game_events(self):
         return list(self.__events_to_handle)
@@ -139,7 +139,7 @@ class GameEventsSender(object):
         Returns key (string) and time (int)
         '''
         if len(events) > 0:
-            logger.info("events to send: " + str(events))
+            logger.debug("events to send: %s" % events)
         command = GameEVT(events=events)
         game_response = self.__request_sender.send(command)
         self.__events_to_handle += game_response.events
@@ -291,7 +291,7 @@ class Game():
         seed_reader = GameSeedReader(self.__itemReader)
         available_seeds = seed_reader.get_avail_seed_names(self.__game_state_)
         if self.__selected_seed is None:
-            seed_name = self.__user_prompt.prompt_user('Plant to seed:',
+            seed_name = self.__user_prompt.prompt_user(u'Семена для грядок:',
                                                        available_seeds)
             self.__selected_seed = seed_reader.get_seed_item(seed_name)
 

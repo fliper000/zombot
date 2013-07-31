@@ -1,4 +1,5 @@
 import ConfigParser
+import logging
 
 
 class Settings():
@@ -45,3 +46,12 @@ class Settings():
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as _:
             pass
         return False
+
+    def get_file_log_level(self):
+        try:
+            log_to_file = self.parser.get('global_settings', 'log_all')
+            if (log_to_file.lower() == 'true'):
+                return logging.INFO
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as _:
+            pass
+        return logging.ERROR

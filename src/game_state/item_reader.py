@@ -31,7 +31,7 @@ class GameItemReader():
             self.contents = json.load(f)
         for content in self.contents:
             if 'id' not in content:
-                logging.warn("there is no id:" + str(content))
+                logging.debug(u"there is no id: %s" % content)
             else:
                 self.content_dict[content['id']] = content
 

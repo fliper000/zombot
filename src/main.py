@@ -32,7 +32,7 @@ def setup_basic_logging(gui_logger):
     connection_logger.propagate = False
 
 
-def setup_file_logging(user_name):
+def setup_file_logging(user_name, log_level):
     log_directory = 'logs/' + user_name
     mkdir_p(log_directory)
     connection_logger = logging.getLogger('connection')
@@ -40,11 +40,13 @@ def setup_file_logging(user_name):
     connection_logger.addHandler(
         logging.FileHandler(log_directory + '/connection.log')
     )
+    connection_logger.setLevel(log_level)
     unknownEventLogger = logging.getLogger('unknownEventLogger')
     unknownEventLogger.propagate = False
     unknownEventLogger.addHandler(
         logging.FileHandler(log_directory + '/unknown_events.log')
     )
+    unknownEventLogger.setLevel(log_level)
 
 
 def strip_special(string):
@@ -54,7 +56,8 @@ def get_site(gui_input):
     settings = Settings()
     users = settings.getUsers()
     selected_user = UserPrompt(gui_input).prompt_user('Select user:', users)
-    setup_file_logging(strip_special(selected_user))
+    log_level = settings.get_file_log_level()
+    setup_file_logging(strip_special(selected_user), log_level)
     settings.setUser(selected_user)
     site = Site(settings)
     return site

@@ -21,7 +21,7 @@ class GiftReceiverBot(BaseActor):
     def receive_all_gifts(self):
         gifts = self._get_game_state().get_state().gifts
         if len(gifts) > 0:
-            logger.info("receiving all gifts:" + str(len(gifts)))
+            logger.info(u"Доступно подарков: %s" % len(gifts))
         for gift in list(gifts):
             self.receive_gift(gift)
 
@@ -38,7 +38,7 @@ class GiftReceiverBot(BaseActor):
         if free:
             gift_name = u'бесплатный ' + gift_name
         gift_name += u" от " + gift.user
-        logger.info(u'Получен ' + gift_name)
+        logger.info(u'Доступен ' + gift_name)
         if not moved:
             if not with_message or self._get_options()["with_messages"]:
                 if free or self._get_options()["non_free"]:
