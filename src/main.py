@@ -76,7 +76,7 @@ def run_game(gui_input=None):
 
 MyLogger = None
 
-__version__ = '0.9.1 ' + BRANCH
+__version__ = '0.9.2 ' + BRANCH
 
 if __name__ == '__main__':
     print '\n2013 (c) github.com/Vanuan/zombot\n version %s\n\n' % __version__
