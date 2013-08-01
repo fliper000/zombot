@@ -2137,21 +2137,26 @@ class GameCookItem(GameAction):
     type = 'item'
 
     def __init__(self, itemId=None,  # @ReservedAssignment
-                 objId=None,  # @ReservedAssignment
-                 y=None,  # @ReservedAssignment
-                 x=None):  # @ReservedAssignment
+                 objId=None):  # @ReservedAssignment
         assert (itemId is None
                 or isinstance(itemId, unicode))
         assert (objId is None
                 or isinstance(objId, long))
-        assert (x is None
-                or isinstance(x, long))
-        assert (y is None
-                or isinstance(y, long))
         self.action = 'cook'
         self.itemId = itemId
         self.objId = objId
         self.type = 'item'
+
+class GameCookStart(GameAction):
+    type = 'item'
+
+    def __init__(self, objId=None):  # @ReservedAssignment
+        assert (objId is None
+                or isinstance(objId, long))
+        self.action = 'start'
+        self.objId = objId
+        self.type = 'item'
+
 
 if __name__ == '__main__':
     pass
