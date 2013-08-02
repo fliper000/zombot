@@ -52,6 +52,7 @@ def setup_file_logging(user_name, log_level):
 def strip_special(string):
     return ''.join(e for e in string if e.isalnum())
 
+
 def get_site(gui_input):
     settings = Settings()
     users = settings.getUsers()
@@ -60,7 +61,7 @@ def get_site(gui_input):
     setup_file_logging(strip_special(selected_user), log_level)
     settings.setUser(selected_user)
     site = Site(settings)
-    return site
+    return site, settings
 
 
 def run_game(gui_input=None):
@@ -68,10 +69,9 @@ def run_game(gui_input=None):
 
     logger.info('Выбираем пользователя...')
 
-    site = get_site(gui_input)
+    site, settings = get_site(gui_input)
 
-
-    Game(site, UserPrompt(gui_input), gui_input=gui_input).start()
+    Game(site, settings, UserPrompt(gui_input), gui_input=gui_input).start()
 
 
 MyLogger = None

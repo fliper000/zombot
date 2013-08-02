@@ -34,7 +34,7 @@ class PlayerBrains(object):
         brains_objects = self.__game_location.get_all_objects_by_types(
             zombie_types)
         for brains_object in brains_objects:
-            if (self.is_busy(brains_object)):
+            if self.is_using_brains(brains_object):
                 occupied_brains_count += self.__get_brains_required(
                     brains_object
                 )
@@ -60,7 +60,7 @@ class PlayerBrains(object):
                 logger.error("Unknown object type: " + object_type)
         return brains_required
 
-    def is_busy(self, brains_object):
+    def is_using_brains(self, brains_object):
         return (hasattr(brains_object, 'target') and brains_object.target or
                 hasattr(brains_object, 'isUp') and brains_object.isUp or
                 hasattr(brains_object, 'started') and brains_object.started)

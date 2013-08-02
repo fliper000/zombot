@@ -19,6 +19,9 @@ class TargetSelecter(BaseActor):
     def get_sent_job(self):
         return ""
 
+    def is_busy(self, worker):
+        return self._get_player_brains().is_using_brains(worker)
+
     def perform_action(self):
         # get all free workers
         wood_graves = self._get_game_location().get_all_objects_by_types(
@@ -27,31 +30,34 @@ class TargetSelecter(BaseActor):
         # get free workers
         free_workers = []
         for wood_grave in wood_graves:
-            if not self._get_player_brains().is_busy(wood_grave):
+            if not self.is_busy(wood_grave):
                 free_workers.append(wood_grave)
         # for each free worker
         for free_worker in free_workers:
             # check brains count
             if self._get_player_brains().has_sufficient_brains_count(
                                                                 free_worker):
-                logger.info("Отправляем зомби на работу")
-                # select any wood tree
-                resources = self._get_game_location().get_all_objects_by_type(
-                    self.get_object_type()
-                )
-                if resources:
-                    # make sure gain is not started yet
-                    resource = self.__find_first_gain_not_started(resources)
-                    if not resource:
-                        logger.info("Все ресурсы уже добываются")
-                    else:
-                        logger.info(self.get_sent_job())
-                        gain_event = GameGainItem(resource.id, free_worker.id)
-                        self._get_events_sender().send_game_events(
-                                                            [gain_event])
-                        resource.gainStarted = True
-                else:
-                    logger.info("Не осталось ресурсов для добычи")
+                self.start_job(free_worker)
+
+    def start_job(self, free_worker):
+        logger.info("Отправляем зомби на работу")
+        # select any wood tree
+        resources = self._get_game_location().get_all_objects_by_type(
+            self.get_object_type()
+        )
+        if resources:
+             # make sure gain is not started yet
+             resource = self.__find_first_gain_not_started(resources)
+             if not resource:
+                 logger.info("Все ресурсы уже добываются")
+             else:
+                 logger.info(self.get_sent_job())
+                 gain_event = GameGainItem(resource.id, free_worker.id)
+                 self._get_events_sender().send_game_events(
+                                                     [gain_event])
+                 resource.gainStarted = True
+        else:
+            logger.info("Не осталось ресурсов для добычи")
 
     def __find_first_gain_not_started(self, resources):
         for resource in resources:

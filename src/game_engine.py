@@ -22,7 +22,8 @@ from game_actors_and_handlers.roulettes import RouletteRoller, \
     GameResultHandler
 from game_actors_and_handlers.wood_graves import WoodPicker, \
     WoodTargetSelecter
-from game_actors_and_handlers.cook_graves import BrewPicker
+from game_actors_and_handlers.cook_graves import BrewPicker, CookerBot,\
+                                                 RecipeReader
 from game_actors_and_handlers.digger_graves import BagsPicker, \
     TimeGainEventHandler
 from game_actors_and_handlers.stone_graves import StonePicker, \
@@ -262,15 +263,13 @@ class Game():
 
     CLIENT_VERSION = long(1362084734)
 
-    def __init__(self, site,
-                  user_prompt, game_item_reader=None, gui_input=None):
+    def __init__(self, site, settings,
+                 user_prompt, game_item_reader=None, gui_input=None):
         logger.info('Логинимся...')
-
-
 
         self.__timer = GameTimer()
         self.__game_initializer = GameInitializer(self.__timer, site)
-        settings = Settings()
+        self.__settings = settings
         self.__ignore_errors = settings.get_ignore_errors()
 
         # load items dictionary
@@ -282,18 +281,32 @@ class Game():
             self.__itemReader = game_item_reader
         self.__user_prompt = user_prompt
         self.__selected_seed = None
+        self.__selected_recipe = None
         self.__selected_location = None
         self.__receive_gifts_with_messages = False
         self.__receive_non_free_gifts = False
         self.__gui_input = gui_input
 
+    def select_item(self, reader_class, prompt_string):
+        item_reader = reader_class(self.__itemReader)
+        available_items = item_reader.get_avail_names(self.__game_state_)
+        item_name = self.__user_prompt.prompt_user(prompt_string,
+                                                   available_items)
+        return item_reader.get_by_name(item_name)
+
     def select_plant_seed(self):
-        seed_reader = GameSeedReader(self.__itemReader)
-        available_seeds = seed_reader.get_avail_seed_names(self.__game_state_)
         if self.__selected_seed is None:
-            seed_name = self.__user_prompt.prompt_user(u'Семена для грядок:',
-                                                       available_seeds)
-            self.__selected_seed = seed_reader.get_seed_item(seed_name)
+            self.__selected_seed = self.select_item(GameSeedReader,
+                                                    u'Семена для грядок:')
+
+    def select_recipe(self):
+        recipe_id = self.__settings.get_user_setting('selected_recipe_id')
+        if recipe_id:
+            self.__selected_recipe = self.__itemReader.get(recipe_id)
+        if self.__selected_recipe is None:
+            self.__selected_recipe = self.select_item(RecipeReader,
+                                                      u'Рецепты для поваров:')
+            self.__settings.save_user_setting('selected_recipe_id', self.__selected_recipe.id)
 
     def select_location(self):
         locations = {}
@@ -305,6 +318,9 @@ class Game():
                                                        locations.keys())
             if location_name in locations:
                 self.__selected_location  = locations[location_name].locationId
+
+    def get_user_setting(self, setting_id):
+        return self.__settings.get
 
 
     def running(self):
@@ -324,8 +340,8 @@ class Game():
                 self.save_game_state(start_response)
 
 #                self.select_location()
-
                 self.select_plant_seed()
+                self.select_recipe()
 
                 self.create_all_actors()
 
@@ -379,6 +395,7 @@ class Game():
                            'non_free': self.__receive_non_free_gifts}
         options = {'GiftReceiverBot': receive_options,
                    'SeederBot': self.__selected_seed,
+                   'CookerBot': self.__selected_recipe,
                    'ChangeLocationBot': self.__selected_location,
                   }
         events_sender = self.__game_events_sender
@@ -392,6 +409,7 @@ class Game():
             GiftReceiverBot,
             HarvesterBot,
             SeederBot,
+            CookerBot,
             RouletteRoller,
             WoodPicker,
             BrewPicker,

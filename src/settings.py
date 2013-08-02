@@ -22,15 +22,21 @@ class Settings():
         return self.parser.get(self._currentUser, 'user_password')
 
     def getSessionCookies(self):
-        try:
-            return self.parser.get(self._currentUser, 'session_cookies')
-        except ConfigParser.NoOptionError:
-            return None
+        return self.get_user_setting('session_cookies')
 
     def setSessionCookies(self, cookies_string):
-        self.parser.set(self._currentUser, 'session_cookies', cookies_string)
+        self.save_user_setting('session_cookies', cookies_string)
+
+    def save_user_setting(self, setting_name, setting_value):
+        self.parser.set(self._currentUser, setting_name, setting_value)
         with open(self.filename, 'w') as fp:
             self.parser.write(fp)
+
+    def get_user_setting(self, setting_name):
+        try:
+            return self.parser.get(self._currentUser, setting_name)
+        except ConfigParser.NoOptionError:
+            return None
 
     def getUsers(self):
         return filter(lambda s: s != 'global_settings', self.parser.sections())

@@ -56,3 +56,50 @@ class GameItemReader():
             pretty_dict = MyPrettyPrinter().pformat(self.content_dict)
             f.write(pretty_dict)
 
+
+
+class LogicalItemReader(object):
+    'defines item ids and names that are available to use'
+
+    def __init__(self, game_item_reader):
+        self._item_reader = game_item_reader
+
+    def get_avail_names(self, game_state):
+        return sorted(self.__get_items_available(game_state).keys())
+
+    def get_by_name(self, item_name):
+        items = self.__get_name_to_item()
+        if item_name in items:
+            return items[item_name]
+
+    def is_item_available(self, item, game_state):
+        level = game_state.get_state().level
+        location_id = game_state.get_game_loc().get_location_id()
+        location = self._item_reader.get(location_id)
+        allowed_here = (not hasattr(location, 'allowCompositionIds') or \
+                        item.id in location.allowCompositionIds) and \
+                       (not hasattr(item, 'locations') or \
+                        location_id in item.locations)
+        is_a_type = item.type == self._get_item_type()
+        allowed_for_level = not hasattr(item, 'level') or item.level <= level
+        return is_a_type and allowed_here and allowed_for_level
+
+    def __get_name_to_item(self):
+        items = {}
+        item_ids = self._get_all_item_ids()
+        for item_id in item_ids:
+            item = self._item_reader.get(item_id)
+            items[item.name] = item
+        return items
+
+    def __get_items_available(self, game_state):
+        items = self.__get_name_to_item()
+        items = {k: v for k, v in items.iteritems()\
+                      if self.is_item_available(v, game_state)}
+        return items
+
+    def _get_all_item_ids(self):
+        raise NotImplementedError  # inherit and implement
+
+    def _get_item_type(self):
+        raise NotImplementedError  # inherit and implement
