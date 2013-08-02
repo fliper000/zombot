@@ -2,6 +2,7 @@
 import logging
 from game_state.game_types import GamePlant, GameFruitTree, GameSlag,\
     GameDigItem, GamePickItem, GameBuyItem
+from game_state.item_reader import LogicalItemReader
 from game_actors_and_handlers.base import BaseActor
 
 logger = logging.getLogger(__name__)
@@ -80,47 +81,16 @@ class SeederBot(BaseActor):
     def _is_seed_available(self, seed_item):
         seed_reader = GameSeedReader(self._get_item_reader())
         game_state = self._get_game_state()
-        return seed_reader.is_seed_available(seed_item, game_state)
+        return seed_reader.is_item_available(seed_item, game_state)
 
 
-class GameSeedReader():
+class GameSeedReader(LogicalItemReader):
 
-    def __init__(self, game_item_reader):
-        self._item_reader = game_item_reader
+    def _get_item_type(self):
+        return 'seed'
 
-    def get_avail_seed_names(self, game_state):
-        return sorted(self.__get_seeds_available(game_state).keys())
-
-    def get_seed_item(self, seed_name):
-        seeds = self.__get_name_to_seed()
-        if seed_name in seeds:
-            return seeds[seed_name]
-
-    def is_seed_available(self, seed_item, game_state):
-        level = game_state.get_state().level
-        location_id = game_state.get_game_loc().get_location_id()
-        location = self._item_reader.get(location_id)
-        allowed_here = (not hasattr(location, 'allowCompositionIds') or \
-                        seed_item.id in location.allowCompositionIds) and \
-                       (not hasattr(seed_item, 'locations') or \
-                        location_id in seed_item.locations)
-        is_a_seed = seed_item.type == 'seed'
-        allowed_for_level = seed_item.level <= level
-        return is_a_seed and allowed_here and allowed_for_level
-
-    def __get_name_to_seed(self):
-        seeds = {}
-        seed_ids = self._item_reader.get('shop').seed
-        for seed_id in seed_ids:
-            seed = self._item_reader.get(seed_id)
-            seeds[seed.name] = seed
-        return seeds
-
-    def __get_seeds_available(self, game_state):
-        seeds = self.__get_name_to_seed()
-        seeds = {k: v for k, v in seeds.iteritems()\
-                      if self.is_seed_available(v, game_state)}
-        return seeds
+    def _get_all_item_ids(self):
+        return self._item_reader.get('shop').seed
 
 
 class PlantEventHandler(object):
