@@ -386,7 +386,7 @@ class Game():
         game_state = self.__game_state_
         actor_classes = [
             #ChangeLocationBot,
-            Pickuper,
+#            Pickuper,
             BoxPickuper,
             GiftReceiverBot,
             HarvesterBot,
@@ -397,7 +397,7 @@ class Game():
             WoodPicker,
             BrewPicker,
             BrewSelecter,
-            #MagicWand,
+#            MagicWand,
             BagsPicker,
             WoodTargetSelecter,
             StonePicker,

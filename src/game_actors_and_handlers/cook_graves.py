@@ -11,8 +11,6 @@ class BrewPicker(ResourcePicker):
 
     def get_worker_types(self):
         return [GameCookGrave.type, GameCookGraveWithBrains.type]
-    
-#        [{"itemId":"RECIPE_54","action":"cook","objId":26688,"type":"item"}]
 
 class BrewSelecter(BaseActor):
     
@@ -20,6 +18,7 @@ class BrewSelecter(BaseActor):
         return [GameCookGrave.type, GameCookGraveWithBrains.type]
     
     def perform_action(self):
+
         cook_graves = self._get_game_location().get_all_objects_by_types(
             self.get_worker_types())
         free_workers = []
@@ -28,4 +27,4 @@ class BrewSelecter(BaseActor):
                 free_workers.append(cook_grave)
         for free_worker in free_workers:
             logger.info("Варим")
-            self._get_events_sender().send_game_events([{"itemId":"RECIPE_02","action":"cook","objId":free_worker.id,"type":"item"}])
+            self._get_events_sender().send_game_events([{"itemId":"RECIPE_53","action":"cook","objId":free_worker.id,"type":"item"}])

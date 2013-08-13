@@ -70,7 +70,7 @@ class GameSeedReader():
             seed = self._item_reader.get(seed_id)
             if (seed.level <= level and
                     seed.type == 'seed'):
-                if not hasattr(seed, 'locations'):
+                if not hasattr(seed, 'locations') or location == 'main':
                     available_seeds[seed.name] = seed.id
                 elif (location in seed.locations):
                     location_only[seed.name] = seed.id
