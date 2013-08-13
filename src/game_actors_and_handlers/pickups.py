@@ -40,11 +40,13 @@ class AddPickupHandler(object):
         self.__game_loc = game_location
 
     def handle(self, event_to_handle):
-        for c in event_to_handle.pickups:
-            try: 
-                i=obj2dict(c)
-                if i['type'] == 'coins': logger.info(u'Подбираем %d денег по координатам (%d,%d)'%(i['count'],i['x'],i['y']))
-                elif i['type'] == 'xp': logger.info(u'Подбираем %d опыта по координатам (%d,%d)'%(i['count'],i['x'],i['y']))
-                else: logger.info(u'Подбираем %d предмет коллекции %s по координатам (%d,%d)'%(i['count'],i['id'].encode('utf-8'),i['x'],i['y']))
-            except: logger.info(u'Подбираем %s'%(str(i)))
+        for pickup in event_to_handle.pickups:
+            item_type_msg = {
+                'coins':  u'денег',
+                'xp': u'опыта',
+                'collection': u'предмет(а) коллекции %s' % pickup.id,
+                'storageItem': u'предмет(а) %s' % pickup.id,
+                'shovel': u'лопат(ы)'
+            }[pickup.type]
+            logger.info(u'Подбираем %d %s по координатам (%d,%d)' % (pickup.count, item_type_msg, pickup.x, pickup.y))
         self.__game_loc.add_pickups(event_to_handle.pickups)
