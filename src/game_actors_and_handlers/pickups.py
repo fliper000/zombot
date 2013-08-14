@@ -24,15 +24,27 @@ class Pickuper(BaseActor):
 
 class BoxPickuper(BaseActor):
 
+    def getOpeningPriceMsg(self, boxItem):
+        openingPrice = boxItem.openingPrice[0]
+        count = openingPrice.count
+        item_name = self._get_item_reader().get(openingPrice.item).name
+        price_msg = u'%d %s' % (count, item_name)
+        return price_msg
+
     def perform_action(self):
         boxes = self._get_game_location().get_all_objects_by_type(
                                                     GamePickup.type)
         for box in boxes:
             name = self._get_item_reader().get_name(box)
-            logger.info(u'Вскрываем ' + name)
-            pick_event = GamePickItem(objId=box.id)
-            self._get_events_sender().send_game_events([pick_event])
-            self._get_game_location().remove_object_by_id(box.id)
+            boxItem = self._get_item_reader().get(box.item)
+            if hasattr(boxItem, 'openingPrice'):
+                logger.info(u'Открыть %s можно за %s' %
+                            (name, self.getOpeningPriceMsg(boxItem)))
+            else:
+                logger.info(u'Вскрываем %s' % name)
+                pick_event = GamePickItem(objId=box.id)
+                self._get_events_sender().send_game_events([pick_event])
+                self._get_game_location().remove_object_by_id(box.id)
 
 
 class AddPickupHandler(object):
