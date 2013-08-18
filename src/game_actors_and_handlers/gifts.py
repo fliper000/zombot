@@ -27,14 +27,14 @@ class GiftReceiverBot(BaseActor):
 
     def receive_gift(self, gift):
         item = self._get_item_reader().get(gift.item)
-        gift_name = u"подарок '" + item.name + u"'"
+        gift_name = u'подарок "' + str(gift.count)+' '+item.name + u"'"
         with_message = hasattr(gift, 'msg') and gift.msg != ''
         moved = hasattr(item, 'moved') and item.moved == True
         free = hasattr(gift, 'free') and gift.free
         if with_message:
             gift_name += u" с сообщением: '" + gift.msg + u"'"
         if moved:
-            logger.info(gift_name + u"' нужно поместить")
+            logger.info(u"П"+gift_name[1:]+ u"' нужно поместить")
         if free:
             gift_name = u'бесплатный ' + gift_name
         gift_name += u" от " + gift.user
