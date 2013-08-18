@@ -15,7 +15,7 @@ from game_state.game_types import GameEVT, GameTIME, GameSTART, \
     GameFertilizePlant, GamePlayGame, \
     GameStartGainMaterial, GameStartTimeGainEvent
 import pprint
-from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
+from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler, CakesReceiverBot
 from game_actors_and_handlers.plants import HarvesterBot, SeederBot, \
     PlantEventHandler, GameSeedReader
 from game_actors_and_handlers.roulettes import RouletteRoller, \
@@ -419,6 +419,7 @@ class Game():
             Pickuper,
             BoxPickuper,
             GiftReceiverBot,
+            CakesReceiverBot,
             HarvesterBot,
             SeederBot,
             CookerBot,

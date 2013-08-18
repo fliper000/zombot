@@ -65,3 +65,22 @@ class AddGiftEventHandler(object):
     def append_gift_to_game_state(self, gift):
         logger.info(u"Получен подарок.")
         self.__game_state.gifts.append(gift)
+
+
+class CakesReceiverBot(BaseActor):
+    def perform_action(self):
+        # Пряники
+        trees = self._get_game_location().\
+                    get_all_objects_by_type('newYearTree')
+        cakes_count = 0
+        for tree in trees:
+            for i in tree.users:
+                cakes_count += 1
+                apply_tree_event = {"type": "newYearTree",
+                                    "action": "applyNewYearGift",
+                                    "objId": tree.id,
+                                    "index": 0}
+                self._get_events_sender().send_game_events([apply_tree_event])
+            tree.users = []
+        if cakes_count > 0:
+            logger.info(u"Собрали %d пряников" % cakes_count)
