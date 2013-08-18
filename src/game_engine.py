@@ -258,6 +258,17 @@ class GameState():
     def get_brains(self):
         return self.__player_brains
 
+    def has_in_storage(self, item_id, count):
+        for item in self.__game_state.storageItems:
+            if item.item == item_id:
+                return item.count >= count
+        return False
+
+    def remove_from_storage(self, item_id, count):
+        for item in self.__game_state.storageItems:
+            if item.item == item_id:
+                item.count -= count
+
 
 class Game():
 
