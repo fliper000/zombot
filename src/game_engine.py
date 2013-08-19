@@ -15,7 +15,7 @@ from game_state.game_types import GameEVT, GameTIME, GameSTART, \
     GameFertilizePlant, GamePlayGame, \
     GameStartGainMaterial, GameStartTimeGainEvent
 import pprint
-from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
+from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler, CakesReceiverBot
 from game_actors_and_handlers.plants import HarvesterBot, SeederBot, \
     PlantEventHandler, GameSeedReader
 from game_actors_and_handlers.roulettes import RouletteRoller, \
@@ -259,6 +259,17 @@ class GameState():
     def get_brains(self):
         return self.__player_brains
 
+    def has_in_storage(self, item_id, count):
+        for item in self.__game_state.storageItems:
+            if item.item == item_id:
+                return item.count >= count
+        return False
+
+    def remove_from_storage(self, item_id, count):
+        for item in self.__game_state.storageItems:
+            if item.item == item_id:
+                item.count -= count
+
 
 class Game():
 
@@ -273,13 +284,7 @@ class Game():
         self.__settings = settings
         self.__ignore_errors = settings.get_ignore_errors()
 
-        # load items dictionary
-        if game_item_reader is None:
-            self.__itemReader = GameItemReader()
-            self.__itemReader.download('items.txt')
-            self.__itemReader.read('items.txt')
-        else:
-            self.__itemReader = game_item_reader
+        self.__itemReader = game_item_reader
         self.__user_prompt = user_prompt
         self.__selected_seed = None
         self.__selected_recipe = None
@@ -335,6 +340,13 @@ class Game():
 
         while(self.running()):
             try:
+                # load items dictionary
+                if self.__itemReader is None:
+                    logger.info('Загружаем словарь объектов...')
+                    item_reader = GameItemReader()
+                    item_reader.download('items.txt')
+                    item_reader.read('items.txt')
+                    self.__itemReader = item_reader
                 start_response = self.__game_initializer.start()
                 self.__game_events_sender = self.__game_initializer.create_events_sender()
 
@@ -408,6 +420,7 @@ class Game():
 #            Pickuper,
             BoxPickuper,
             GiftReceiverBot,
+            CakesReceiverBot,
             HarvesterBot,
             SeederBot,
             CookerBot,
