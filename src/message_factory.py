@@ -179,11 +179,14 @@ class Request():
                 error_msg = response["msg"]
                 logger.error(error_msg)
                 # TODO send error to the game server
-                raise ValueError("Game server returned error: " + error_msg)
+                raise GameError("Game server returned error: " + error_msg)
         return response
 
     def send_request_get_response(self, connection):
         return Response(connection.sendRequest(self.getData())).getDict()
+
+
+class GameError(Exception): pass
 
 
 class Response():
@@ -192,7 +195,7 @@ class Response():
     '''
     def __init__(self, response_string):
         if '$' in response_string:
-            crc, response = response_string.split("$")
+            crc, response = response_string.split("$", 1)
             if(calcCRC(response) != crc):
                 raise ValueError("CRC is invalid: " + crc)
         else:

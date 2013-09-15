@@ -8,22 +8,23 @@ from settings import Settings
 import vkutils
 import logging
 import time
-from game_state.item_reader import GameItemReader, GameSeedReader
+from game_state.item_reader import GameItemReader
 from game_state.game_event import dict2obj, obj2dict
 from game_state.game_types import GameEVT, GameTIME, GameSTART, \
     GameInfo, \
     GameFertilizePlant, GamePlayGame, \
     GameStartGainMaterial, GameStartTimeGainEvent
 import pprint
-from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
+from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler, CakesReceiverBot
 from game_actors_and_handlers.plants import HarvesterBot, SeederBot, \
-    PlantEventHandler
+    PlantEventHandler, GameSeedReader
 from game_actors_and_handlers.roulettes import RouletteRoller, \
     GameResultHandler, CherryRouletteRoller
 from game_actors_and_handlers.wood_graves import WoodPicker, \
     WoodTargetSelecter
-from game_actors_and_handlers.cook_graves import BrewPicker
 from game_actors_and_handlers.wand import MagicWand
+from game_actors_and_handlers.cook_graves import BrewPicker, CookerBot,\
+                                                 RecipeReader
 from game_actors_and_handlers.digger_graves import BagsPicker, \
     TimeGainEventHandler
 from game_actors_and_handlers.stone_graves import StonePicker, \
@@ -130,7 +131,7 @@ class GameEventsSender(object):
 
     def print_game_events(self):
         if len(self.__events_to_handle) > 0:
-            logger.info("received events: " + str(self.__events_to_handle))
+            logger.debug("received events: %s" % self.__events_to_handle)
 
     def get_game_events(self):
         return list(self.__events_to_handle)
@@ -140,7 +141,7 @@ class GameEventsSender(object):
         Returns key (string) and time (int)
         '''
         if len(events) > 0:
-            logger.info("events to send: " + str(events))
+            logger.debug("events to send: %s" % events)
         command = GameEVT(events=events)
         game_response = self.__request_sender.send(command)
         self.__events_to_handle += game_response.events
@@ -258,44 +259,60 @@ class GameState():
     def get_brains(self):
         return self.__player_brains
 
+    def has_in_storage(self, item_id, count):
+        for item in self.__game_state.storageItems:
+            if item.item == item_id:
+                return item.count >= count
+        return False
+
+    def remove_from_storage(self, item_id, count):
+        for item in self.__game_state.storageItems:
+            if item.item == item_id:
+                item.count -= count
+
 
 class Game():
 
     CLIENT_VERSION = long(1362084734)
 
-    def __init__(self, site,
-                  user_prompt, game_item_reader=None, gui_input=None):
+    def __init__(self, site, settings,
+                 user_prompt, game_item_reader=None, gui_input=None):
         logger.info('Логинимся...')
-
-
 
         self.__timer = GameTimer()
         self.__game_initializer = GameInitializer(self.__timer, site)
+        self.__settings = settings
+        self.__ignore_errors = settings.get_ignore_errors()
 
-        # load items dictionary
-        if game_item_reader is None:
-            self.__itemReader = GameItemReader()
-            self.__itemReader.download('items.txt')
-            self.__itemReader.read('items.txt')
-        else:
-            self.__itemReader = game_item_reader
+        self.__itemReader = game_item_reader
         self.__user_prompt = user_prompt
         self.__selected_seed = None
+        self.__selected_recipe = None
         self.__selected_location = None
         self.__receive_gifts_with_messages = False
         self.__receive_non_free_gifts = False
         self.__gui_input = gui_input
 
+    def select_item(self, reader_class, prompt_string):
+        item_reader = reader_class(self.__itemReader)
+        available_items = item_reader.get_avail_names(self.__game_state_)
+        item_name = self.__user_prompt.prompt_user(prompt_string,
+                                                   available_items)
+        return item_reader.get_by_name(item_name)
+
     def select_plant_seed(self):
-        level = self.get_game_state().level
-        location = self.get_game_loc().get_location_id()
-        seed_reader = GameSeedReader(self.__itemReader)
-        available_seeds = seed_reader.getAvailablePlantSeedsDict(level,
-                                                                 location)
         if self.__selected_seed is None:
-            seed_name = self.__user_prompt.prompt_user('Plant to seed:',
-                                                       available_seeds.keys())
-            self.__selected_seed = available_seeds[seed_name]
+            self.__selected_seed = self.select_item(GameSeedReader,
+                                                    u'Семена для грядок:')
+
+    def select_recipe(self):
+        recipe_id = self.__settings.get_user_setting('selected_recipe_id')
+        if recipe_id:
+            self.__selected_recipe = self.__itemReader.get(recipe_id)
+        if self.__selected_recipe is None:
+            self.__selected_recipe = self.select_item(RecipeReader,
+                                                      u'Рецепты для поваров:')
+            self.__settings.save_user_setting('selected_recipe_id', self.__selected_recipe.id)
 
     def select_location(self):
         locations = {}
@@ -307,6 +324,9 @@ class Game():
                                                        locations.keys())
             if location_name in locations:
                 self.__selected_location  = locations[location_name].locationId
+
+    def get_user_setting(self, setting_id):
+        return self.__settings.get
 
 
     def running(self):
@@ -320,14 +340,21 @@ class Game():
 
         while(self.running()):
             try:
+                # load items dictionary
+                if self.__itemReader is None:
+                    logger.info('Загружаем словарь объектов...')
+                    item_reader = GameItemReader()
+                    item_reader.download('items.txt')
+                    item_reader.read('items.txt')
+                    self.__itemReader = item_reader
                 start_response = self.__game_initializer.start()
                 self.__game_events_sender = self.__game_initializer.create_events_sender()
 
                 self.save_game_state(start_response)
 
 #                self.select_location()
-
                 self.select_plant_seed()
+                self.select_recipe()
 
                 self.create_all_actors()
 
@@ -347,6 +374,9 @@ class Game():
                 logger.error('Socket error occurred, retrying in %s seconds...'
                              % seconds)
                 time.sleep(seconds)
+            except message_factory.GameError, e:
+                if not self.__ignore_errors:
+                    raise e
 
     def save_game_state(self, start_response):
         # parse game state
@@ -378,6 +408,7 @@ class Game():
                            'non_free': self.__receive_non_free_gifts}
         options = {'GiftReceiverBot': receive_options,
                    'SeederBot': self.__selected_seed,
+                   'CookerBot': self.__selected_recipe,
                    'ChangeLocationBot': self.__selected_location,
                   }
         events_sender = self.__game_events_sender
@@ -389,8 +420,10 @@ class Game():
             Pickuper,
             BoxPickuper,
             GiftReceiverBot,
+            CakesReceiverBot,
             HarvesterBot,
             SeederBot,
+            CookerBot,
             RouletteRoller,
             #Разкомментировать, чтобы слить все вишни
             CherryRouletteRoller,
