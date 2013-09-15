@@ -393,10 +393,10 @@ class Game():
             SeederBot,
             RouletteRoller,
             #Разкомментировать, чтобы слить все вишни
-            #CherryRouletteRoller,
+            CherryRouletteRoller,
             WoodPicker,
             BrewPicker,
-            MagicWand,
+            #MagicWand,
             BagsPicker,
             WoodTargetSelecter,
             StonePicker,

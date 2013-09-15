@@ -40,9 +40,12 @@ class RouletteRoller(BaseActor):
 class CherryRouletteRoller(BaseActor):
 
     def perform_action(self):
+        cherrys = 0
+        #fruit = '@S_51' #apple
+        fruit = '@S_52' #cherry
         all_items = self._get_game_state().get_state().storageItems
         for one_item in all_items:
-            if one_item.item == '@S_52':
+            if one_item.item == fruit:
                 cherrys = one_item.count
         buildings = self._get_game_location().get_all_objects_by_type(
                         GameBuilding.type)
@@ -60,7 +63,7 @@ class CherryRouletteRoller(BaseActor):
                 if (
                         next_play and
                         self._get_timer().has_elapsed(next_play) and
-                        play_cost == '@S_52'
+                        play_cost == fruit
                 ):
                     for _ in range(cherrys/5):
                         logger.info(
