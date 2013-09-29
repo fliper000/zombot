@@ -43,9 +43,10 @@ logger = logging.getLogger(__name__)
 
 class GameLocation():
 
-    def __init__(self, item_reader, game_location):
+    def __init__(self, item_reader, game_location, game_objects):
         self.__item_reader = item_reader
         self.__game_location = game_location
+        self.__game_objects = game_objects
         self.__pickups = []
 
     def append_object(self, obj):
@@ -55,7 +56,7 @@ class GameLocation():
         return self.__game_location
 
     def get_game_objects(self):
-        return self.get_game_location().gameObjects
+        return self.__game_objects
 
     def get_location_id(self):
         return self.__game_location.id
@@ -242,10 +243,9 @@ class GameState():
 
     def set_game_loc(self, game_state_event):
         self.__game_loc = GameLocation(self.__item_reader,
-                                       game_state_event.location)
+                                       game_state_event.location, game_state_event.gameObjects)
         for attr, val in game_state_event.__dict__.iteritems():
             self.__game_state.__setattr__(attr, val)
-        #self.get_game_loc().log_game_objects()
 
     def get_location_id(self):
         return self.get_state().locationId
