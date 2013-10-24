@@ -74,6 +74,7 @@ class CherryRouletteRoller(BaseActor):
                             str(building.x) + u", " + str(building.y) + u")")
                         roll = GamePlayGame(building.id, game_id)
                         self._get_events_sender().send_game_events([roll])
+                    cherrys = 0
 
 
 class GameResultHandler(object):

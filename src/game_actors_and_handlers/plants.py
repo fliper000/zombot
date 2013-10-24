@@ -97,19 +97,25 @@ class SeederBot(BaseActor):
 class GameBuffHarvest(BaseActor):
     
     def perform_action(self):
+        flag = 0
+        timeExp = 0
         seed_id = self._get_options()
         isThereBuff = self._get_game_state().get_state().buffs.list
         for Buff in isThereBuff:
             print Buff.item
             if Buff.item == "@BUFF_FIX_HARVEST_1":
                 ends = Buff.expire
-                print ends.endDate 
-            else:
-                all_items = self._get_game_state().get_state().storageItems
-                for one_item in all_items:
-                    if one_item.item == "@BS_BUFF_FIX_HARVEST_1":
-                        event = {"x":20,"type":"item","y":7,"action":"useStorageItem","itemId":"BS_BUFF_FIX_HARVEST_1"}
-                        #                    self._get_events_sender().send_game_events([event])
+                flag = 1
+                timeExp = ends.endDate
+                print timeExp
+        if flag == 0 or self._get_timer().has_elapsed(ends.endDate):
+            all_items = self._get_game_state().get_state().storageItems
+            for one_item in all_items:
+                if one_item.item == "@BS_BUFF_FIX_HARVEST_1":
+                    event = {"x":20,"type":"item","y":7,"action":"useStorageItem","itemId":"BS_BUFF_FIX_HARVEST_1"}
+                    #self._get_events_sender().send_game_events([event])
+                    print 'Im Using Super Harvest'
+                    flag = 0
 
 
 class GameSeedReader(LogicalItemReader):
