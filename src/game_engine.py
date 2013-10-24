@@ -243,7 +243,7 @@ class GameState():
 
     def set_game_loc(self, game_state_event):
         self.__game_loc = GameLocation(self.__item_reader,
-                                       game_state_event.location,game_state_event.gameObjects)
+                                       game_state_event.location, game_state_event.gameObjects)
         for attr, val in game_state_event.__dict__.iteritems():
             self.__game_state.__setattr__(attr, val)
 
