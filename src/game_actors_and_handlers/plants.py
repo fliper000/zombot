@@ -93,6 +93,17 @@ class SeederBot(BaseActor):
         seed_reader = GameSeedReader(self._get_item_reader())
         game_state = self._get_game_state()
         return seed_reader.is_item_available(seed_item, game_state)
+    
+class GameBuffHarvest(BaseActor):
+    
+    def perform_action(self):
+        seed_id = self._get_options()
+        if seed_id.harvestTime > 300:
+            all_items = self._get_game_state().get_state().storageItems
+            for one_item in all_items:
+                if one_item.item == "@BS_BUFF_FIX_HARVEST_1":
+                    event = {"x":20,"type":"item","y":7,"action":"useStorageItem","itemId":"BS_BUFF_FIX_HARVEST_1"}
+#                    self._get_events_sender().send_game_events([event])
 
 
 class GameSeedReader(LogicalItemReader):
