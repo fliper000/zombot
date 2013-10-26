@@ -17,7 +17,7 @@ from game_state.game_types import GameEVT, GameTIME, GameSTART, \
 import pprint
 from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler, CakesReceiverBot
 from game_actors_and_handlers.plants import HarvesterBot, SeederBot, \
-    PlantEventHandler, GameSeedReader
+    PlantEventHandler, GameSeedReader, GameBuffHarvest
 from game_actors_and_handlers.roulettes import RouletteRoller, \
     GameResultHandler, CherryRouletteRoller
 from game_actors_and_handlers.wood_graves import WoodPicker, \
@@ -408,6 +408,7 @@ class Game():
                            'non_free': self.__receive_non_free_gifts}
         options = {'GiftReceiverBot': receive_options,
                    'SeederBot': self.__selected_seed,
+                   'GameBuffHarvest': self.__selected_seed,
                    'CookerBot': self.__selected_recipe,
                    'ChangeLocationBot': self.__selected_location,
                   }
@@ -417,7 +418,8 @@ class Game():
         game_state = self.__game_state_
         actor_classes = [
             #ChangeLocationBot,
-            Pickuper,
+#            Pickuper,
+            GameBuffHarvest,
             BoxPickuper,
             GiftReceiverBot,
             CakesReceiverBot,
@@ -429,7 +431,7 @@ class Game():
             CherryRouletteRoller,
             WoodPicker,
             BrewPicker,
-            #MagicWand,
+#            MagicWand,
             BagsPicker,
             WoodTargetSelecter,
             StonePicker,

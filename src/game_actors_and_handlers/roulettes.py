@@ -41,8 +41,8 @@ class CherryRouletteRoller(BaseActor):
 
     def perform_action(self):
         cherrys = 0
-        #fruit = '@S_51' #apple
-        fruit = '@S_52' #cherry
+        fruit = '@S_52' # cherry
+        #fruit = '@S_51' #яблоко
         all_items = self._get_game_state().get_state().storageItems
         for one_item in all_items:
             if one_item.item == fruit:
@@ -74,6 +74,7 @@ class CherryRouletteRoller(BaseActor):
                             str(building.x) + u", " + str(building.y) + u")")
                         roll = GamePlayGame(building.id, game_id)
                         self._get_events_sender().send_game_events([roll])
+                    cherrys = 0
 
 
 class GameResultHandler(object):

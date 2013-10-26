@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class MagicWand(BaseActor):
 
     def get_object_type(self):
-        return GameWoodTree.type
+        return GameStone.type
 
     def perform_action(self):
         resources = self._get_game_location().get_all_objects_by_type(

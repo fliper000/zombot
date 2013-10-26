@@ -12,7 +12,6 @@ class BrewPicker(ResourcePicker):
     def get_worker_types(self):
         return [GameCookGrave.type, GameCookGraveWithBrains.type]
 
-
 class CookerBot(TargetSelecter):
     MAX_PENDING_RECIPES = 3
 
