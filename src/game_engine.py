@@ -17,7 +17,8 @@ from game_state.game_types import GameEVT, GameTIME, GameSTART, \
 import pprint
 from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler, CakesReceiverBot
 from game_actors_and_handlers.plants import HarvesterBot, SeederBot, \
-    PlantEventHandler, GameSeedReader, GameBuffHarvest
+    PlantEventHandler, GameSeedReader
+from game_actors_and_handlers.harvest_buff import GameBuffHarvest
 from game_actors_and_handlers.roulettes import RouletteRoller, \
     GameResultHandler, CherryRouletteRoller
 from game_actors_and_handlers.wood_graves import WoodPicker, \
@@ -418,7 +419,7 @@ class Game():
         game_state = self.__game_state_
         actor_classes = [
             #ChangeLocationBot,
-#            Pickuper,
+            #Pickuper,
             GameBuffHarvest,
             BoxPickuper,
             GiftReceiverBot,
@@ -427,11 +428,10 @@ class Game():
             SeederBot,
             CookerBot,
             RouletteRoller,
-            #Разкомментировать, чтобы слить все вишни
-            CherryRouletteRoller,
+            #CherryRouletteRoller,
             WoodPicker,
             BrewPicker,
-#            MagicWand,
+            #MagicWand,
             BagsPicker,
             WoodTargetSelecter,
             StonePicker,
