@@ -2,6 +2,7 @@
 import logging
 from game_state.game_types import GamePlant, GameFruitTree, GameSlag,\
     GameDigItem, GamePickItem, GameBuyItem
+from game_state.game_event import dict2obj, obj2dict
 from game_state.item_reader import LogicalItemReader
 from game_actors_and_handlers.base import BaseActor
 
@@ -97,25 +98,21 @@ class SeederBot(BaseActor):
 class GameBuffHarvest(BaseActor):
     
     def perform_action(self):
-        isThereHarvestBuff = False
-        timeExp = 0
+        is_there_harvest_buff = False
         seed_id = self._get_options()
-        buffList = self._get_game_state().get_state().buffs.list
-        for Buff in buffList:
-            if Buff.item == "@BUFF_FIX_HARVEST_1":
-                ends = Buff.expire
-                isThereHarvestBuff = True
-                timeExp = ends.endDate
-        if isThereHarvestBuff == False or self._get_timer().has_elapsed(ends.endDate):
+        buff_list = self._get_game_state().get_state().buffs.list
+        for buff in buff_list:
+            if buff.item == "@BUFF_FIX_HARVEST_1":
+                time_exp = buff.expire.endDate
+                is_there_harvest_buff = True
+        if is_there_harvest_buff == False or self._get_timer().has_elapsed(time_exp):
             all_items = self._get_game_state().get_state().storageItems
-            for one_item in all_items:
-                if one_item.item == "@BS_BUFF_FIX_HARVEST_1":
-                    event = {"x":20,"type":"item","y":7,"action":"useStorageItem","itemId":"BS_BUFF_FIX_HARVEST_1"}
-                    #self._get_events_sender().send_game_events([event])
-                    isThereHarvestBuff = False
-                    buffList.append(one_item)
-                    one_item.count -= 1
-                    break
+            if self._get_game_state().has_in_storage("@BS_BUFF_FIX_HARVEST_1", 1):
+                event = {"x":20,"type":"item","y":7,"action":"useStorageItem","itemId":"BS_BUFF_FIX_HARVEST_1"}
+                self._get_events_sender().send_game_events([event])
+                logger.info(u"Применяю супер-урожай на 24 часа")
+                buff_list.append(dict2obj({"item":"@BUFF_FIX_HARVEST_1", "expire": dict2obj({"type":"time", "endDate": str(int(self._get_timer()._get_current_client_time())+86400000)})}))
+                self._get_game_state().remove_from_storage("@BS_BUFF_FIX_HARVEST_1", 1)
 
 
 class GameSeedReader(LogicalItemReader):
