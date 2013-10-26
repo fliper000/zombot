@@ -1,6 +1,5 @@
 # coding=utf-8
 import logging
-from game_state.game_types
 from game_state.game_event import dict2obj
 from game_actors_and_handlers.base import BaseActor
 
