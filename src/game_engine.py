@@ -409,7 +409,6 @@ class Game():
                            'non_free': self.__receive_non_free_gifts}
         options = {'GiftReceiverBot': receive_options,
                    'SeederBot': self.__selected_seed,
-                   'GameBuffHarvest': self.__selected_seed,
                    'CookerBot': self.__selected_recipe,
                    'ChangeLocationBot': self.__selected_location,
                   }

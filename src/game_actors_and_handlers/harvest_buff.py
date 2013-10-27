@@ -11,7 +11,6 @@ class GameBuffHarvest(BaseActor):
     
     def perform_action(self):
         is_there_harvest_buff = False
-        seed_id = self._get_options()
         buff_list = self._get_game_state().get_state().buffs.list
         for buff in buff_list:
             if buff.item == "@BUFF_FIX_HARVEST_1":
