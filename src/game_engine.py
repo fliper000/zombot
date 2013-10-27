@@ -23,6 +23,7 @@ from game_actors_and_handlers.roulettes import RouletteRoller, \
 from game_actors_and_handlers.wood_graves import WoodPicker, \
     WoodTargetSelecter
 from game_actors_and_handlers.wand import MagicWand
+from game_actors_and_handlers.friend_dig import FriendDigger, ByRockets
 from game_actors_and_handlers.cook_graves import BrewPicker, CookerBot,\
                                                  RecipeReader
 from game_actors_and_handlers.digger_graves import BagsPicker, \
@@ -419,7 +420,8 @@ class Game():
         actor_classes = [
             #ChangeLocationBot,
 #            Pickuper,
-            GameBuffHarvest,
+            #GameBuffHarvest,
+#            FriendDigger,
             BoxPickuper,
             GiftReceiverBot,
             CakesReceiverBot,
@@ -431,7 +433,8 @@ class Game():
             CherryRouletteRoller,
             WoodPicker,
             BrewPicker,
-#            MagicWand,
+            MagicWand,
+            ByRockets,
             BagsPicker,
             WoodTargetSelecter,
             StonePicker,
