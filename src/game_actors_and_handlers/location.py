@@ -54,6 +54,5 @@ class GameStateEventHandler(object):
         self.__game_state = game_state
 
     def handle(self, event_to_handle):
-        print obj2dict(event_to_handle)
         logger.info(u'Перешли на ' + event_to_handle.location.id)
         self.__game_state.set_game_loc(event_to_handle)
