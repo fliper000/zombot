@@ -23,7 +23,9 @@ from game_actors_and_handlers.roulettes import RouletteRoller, \
     GameResultHandler, CherryRouletteRoller
 from game_actors_and_handlers.wood_graves import WoodPicker, \
     WoodTargetSelecter
+from game_actors_and_handlers.building_buyer import BuildingBuyer
 from game_actors_and_handlers.wand import MagicWand
+from game_actors_and_handlers.friend_dig import FriendDigger
 from game_actors_and_handlers.cook_graves import BrewPicker, CookerBot,\
                                                  RecipeReader
 from game_actors_and_handlers.digger_graves import BagsPicker, \
@@ -418,8 +420,8 @@ class Game():
         game_state = self.__game_state_
         actor_classes = [
             #ChangeLocationBot,
-            #Pickuper,
-            GameBuffHarvest,
+#            Pickuper,
+            #GameBuffHarvest,
             BoxPickuper,
             GiftReceiverBot,
             CakesReceiverBot,
@@ -430,10 +432,12 @@ class Game():
             #CherryRouletteRoller,
             WoodPicker,
             BrewPicker,
-            #MagicWand,
+#            MagicWand,
+#            BuildingBuyer,
             BagsPicker,
             WoodTargetSelecter,
             StonePicker,
+#            FriendDigger,
             StoneTargetSelecter,
         ]
         self.__actors = []
