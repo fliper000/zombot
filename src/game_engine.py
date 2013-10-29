@@ -19,6 +19,8 @@ from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler,
 from game_actors_and_handlers.plants import HarvesterBot, SeederBot, \
     PlantEventHandler, GameSeedReader
 from game_actors_and_handlers.harvest_buff import GameBuffHarvest
+from game_actors_and_handlers.extra_money import HarvestExchange
+from game_actors_and_handlers.chop import PirateTreeCut
 from game_actors_and_handlers.roulettes import RouletteRoller, \
     GameResultHandler, CherryRouletteRoller
 from game_actors_and_handlers.wood_graves import WoodPicker, \
@@ -432,10 +434,12 @@ class Game():
             #CherryRouletteRoller,
             WoodPicker,
             BrewPicker,
-#            MagicWand,
+            MagicWand,
 #            BuildingBuyer,
             BagsPicker,
             WoodTargetSelecter,
+            PirateTreeCut,
+            HarvestExchange,
             StonePicker,
 #            FriendDigger,
             StoneTargetSelecter,
