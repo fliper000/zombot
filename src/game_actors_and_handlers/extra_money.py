@@ -34,7 +34,7 @@ class HarvestExchange(BaseActor):
                 for item in self._get_game_state().get_state().gameObjects:
                     if item.item == "@B_BUSINESS":
                         o_id = item.id
-                for _ in range(500):
+                for _ in range(5000):
                     if storage_rose > rose_count and storage_lily > lily_count:
                         event = {"itemId":craft,"objId":o_id,"action":"craft","type":"item"}
                         logger.info("Обмениваем партию Роз и Лилий")
