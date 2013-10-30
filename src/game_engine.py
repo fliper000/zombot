@@ -441,7 +441,7 @@ class Game():
             PirateTreeCut,
             HarvestExchange,
             StonePicker,
-#            FriendDigger,
+            #FriendDigger,
             StoneTargetSelecter,
         ]
         self.__actors = []

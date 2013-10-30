@@ -40,3 +40,5 @@ class PirateTreeCut(BaseActor):
             if not resource.gainStarted:
                 return resource
 
+#{"type":"pirateCapture","objId":-5333,"action":"capture"} #пиратский клад
+
