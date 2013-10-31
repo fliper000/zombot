@@ -27,6 +27,7 @@ from game_actors_and_handlers.wood_graves import WoodPicker, \
     WoodTargetSelecter
 from game_actors_and_handlers.building_buyer import BuildingBuyer
 from game_actors_and_handlers.wand import MagicWand
+from game_actors_and_handlers.travel_buff import GameTravelBuff
 from game_actors_and_handlers.friend_dig import FriendDigger
 from game_actors_and_handlers.cook_graves import BrewPicker, CookerBot,\
                                                  RecipeReader
@@ -440,6 +441,7 @@ class Game():
             WoodTargetSelecter,
             PirateTreeCut,
             HarvestExchange,
+            GameTravelBuff,
             StonePicker,
             #FriendDigger,
             StoneTargetSelecter,
