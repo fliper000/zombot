@@ -84,3 +84,22 @@ class CakesReceiverBot(BaseActor):
             tree.users = []
         if cakes_count > 0:
             logger.info(u"Собрали %d пряников" % cakes_count)
+
+class TricksReceiverBot(BaseActor):
+    def perform_action(self):
+        # Пряники
+        trees = self._get_game_location().\
+                    get_all_objects_by_type('halloweenTower')
+        cakes_count = 0
+        for tree in trees:
+            for i in tree.users:
+                cakes_count += 1
+                apply_tree_event = {"objId":47570,
+				"type":"item",
+				"action":"trick",
+				"itemId":"KITTY_PACK_BIG",
+				"extraId":"14809311"}
+                self._get_events_sender().send_game_events([apply_tree_event])
+            tree.users = []
+        if cakes_count > 0:
+            logger.info(u"Собрали %d пряников" % cakes_count)
