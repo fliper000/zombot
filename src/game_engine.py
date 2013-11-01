@@ -16,14 +16,19 @@ from game_state.game_types import GameEVT, GameTIME, GameSTART, \
     GameStartGainMaterial, GameStartTimeGainEvent
 import pprint
 from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler, CakesReceiverBot
+from game_actors_and_handlers.haloween_gifts import TricksReceiverBot
 from game_actors_and_handlers.plants import HarvesterBot, SeederBot, \
-    PlantEventHandler, GameSeedReader, GameBuffHarvest
+    PlantEventHandler, GameSeedReader
+from game_actors_and_handlers.harvest_buff import GameBuffHarvest
+from game_actors_and_handlers.extra_money import HarvestExchange
+from game_actors_and_handlers.chop import PirateTreeCut
 from game_actors_and_handlers.roulettes import RouletteRoller, \
     GameResultHandler, CherryRouletteRoller
 from game_actors_and_handlers.wood_graves import WoodPicker, \
     WoodTargetSelecter
 from game_actors_and_handlers.building_buyer import BuildingBuyer
 from game_actors_and_handlers.wand import MagicWand
+from game_actors_and_handlers.travel_buff import GameTravelBuff
 from game_actors_and_handlers.friend_dig import FriendDigger
 from game_actors_and_handlers.cook_graves import BrewPicker, CookerBot,\
                                                  RecipeReader
@@ -410,7 +415,6 @@ class Game():
                            'non_free': self.__receive_non_free_gifts}
         options = {'GiftReceiverBot': receive_options,
                    'SeederBot': self.__selected_seed,
-                   'GameBuffHarvest': self.__selected_seed,
                    'CookerBot': self.__selected_recipe,
                    'ChangeLocationBot': self.__selected_location,
                   }
@@ -425,20 +429,23 @@ class Game():
             BoxPickuper,
             GiftReceiverBot,
             CakesReceiverBot,
+            TricksReceiverBot,
             HarvesterBot,
             SeederBot,
             CookerBot,
             RouletteRoller,
-            #Разкомментировать, чтобы слить все вишни
-            CherryRouletteRoller,
+            #CherryRouletteRoller,
             WoodPicker,
             BrewPicker,
-            MagicWand,
+            #MagicWand,
 #            BuildingBuyer,
             BagsPicker,
             WoodTargetSelecter,
+            PirateTreeCut,
+            HarvestExchange,
+            GameTravelBuff,
             StonePicker,
-#            FriendDigger,
+            #FriendDigger,
             StoneTargetSelecter,
         ]
         self.__actors = []

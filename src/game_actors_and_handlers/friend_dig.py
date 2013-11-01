@@ -16,7 +16,7 @@ class FriendDigger(BaseActor):
         logger.info(u"Иду к другу")
  #       dig = {"x":63,"action":"remoteDig","y":57,"type":"item","objId":159}
 #        dig = {"x":72,"action":"remoteDig","y":92,"id":18,"type":"item","objId":41979} # 116164569
-        dig = {"x":63,"action":"remoteDig","y":57,"type":"item","objId":159}
+        dig = {"objId":7203,"x":69,"action":"remoteDig","y":67,"type":"item"}
         dig_count = 299
         for _ in range(dig_count):
             self._get_events_sender().send_game_events([dig])
