@@ -17,7 +17,6 @@ class GameBuffHarvest(BaseActor):
                 time_exp = buff.expire.endDate
                 is_there_harvest_buff = True
         if is_there_harvest_buff == False or self._get_timer().has_elapsed(time_exp):
-            all_items = self._get_game_state().get_state().storageItems
             if self._get_game_state().has_in_storage("@BS_BUFF_FIX_HARVEST_1", 1):
                 event = {"x":20,"type":"item","y":7,"action":"useStorageItem","itemId":"BS_BUFF_FIX_HARVEST_1"}
                 self._get_events_sender().send_game_events([event])
