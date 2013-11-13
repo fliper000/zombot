@@ -21,7 +21,7 @@ class RouletteRoller(BaseActor):
                     play_cost = game.playCost
                 next_play = None
                 next_play_times = building.nextPlayTimes.__dict__
-                if game_id in next_play_times:
+                if game_id in next_play_times and not game_id == "B_TAVERNA_ROULETTE_1":
                     next_play = int(next_play_times[game_id])
                 if (
                         next_play and
