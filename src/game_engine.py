@@ -30,6 +30,7 @@ from game_actors_and_handlers.building_buyer import BuildingBuyer
 from game_actors_and_handlers.wand import MagicWand
 from game_actors_and_handlers.travel_buff import GameTravelBuff
 from game_actors_and_handlers.friend_dig import FriendDigger
+from game_actors_and_handlers.emerald import EmeraldExchange
 from game_actors_and_handlers.cook_graves import BrewPicker, CookerBot,\
                                                  RecipeReader
 from game_actors_and_handlers.digger_graves import BagsPicker, \
@@ -45,7 +46,7 @@ import socket
 import urllib2
 
 logger = logging.getLogger(__name__)
-
+EmeraldExchange
 
 
 class GameLocation():
@@ -104,7 +105,7 @@ class GameLocation():
     def remove_pickup(self, pickup):
         self.__pickups.remove(pickup)
 
-
+EmeraldExchange
 class GameTimer(object):
 
     def __init__(self):
@@ -213,7 +214,7 @@ class GameInitializer():
         '''
         returns user info using vk api
         '''
-        # get vk user info
+        # get vk user infoEmeraldExchange
         api = vkontakte.api.API(token=self.__api_access_token)
         info = api.getProfiles(
             uids=self.__session.getUserId(), format='json',
@@ -429,23 +430,24 @@ class Game():
             BoxPickuper,
             GiftReceiverBot,
             CakesReceiverBot,
-            TricksReceiverBot,
+            #TricksReceiverBot,
             HarvesterBot,
             SeederBot,
             CookerBot,
             RouletteRoller,
-            #CherryRouletteRoller,
+            CherryRouletteRoller,
             WoodPicker,
             BrewPicker,
             #MagicWand,
+            EmeraldExchange,
 #            BuildingBuyer,
             BagsPicker,
             WoodTargetSelecter,
             PirateTreeCut,
-            HarvestExchange,
+#            HarvestExchange,
             GameTravelBuff,
             StonePicker,
-            #FriendDigger,
+           # FriendDigger,
             StoneTargetSelecter,
         ]
         self.__actors = []
