@@ -6,9 +6,9 @@ import gzip
 import Cookie
 import logging
 import time
+from urllib2 import (OpenerDirector, UnknownHandler, HTTPHandler, HTTPDefaultErrorHandler, HTTPErrorProcessor, HTTPCookieProcessor, HTTPError, HTTPRedirectHandler)
 
 logger = logging.getLogger('connection')
-
 
 class Connection(object):
     def __init__(self, url):
@@ -34,7 +34,7 @@ class Connection(object):
             return None
 
     def __getResponse(self, data, cookies=None, headers=None):
-        opener = urllib2.build_opener()
+        opener = urllib2.build_opener()    
         opener.addheaders = self.getHeaders().items()
         if headers is not None:
             opener.addheaders += headers
@@ -44,9 +44,10 @@ class Connection(object):
             data = urllib.urlencode(self.encode_dict(data))
         logger.info('request: ' + self.__url + ' ' + str(data))
         try:
-            response = opener.open(self.__url, data, timeout=2)
+            response = opener.open(self.__url, data, timeout=8)
         except urllib2.HTTPError, e:
             logger.error('HTTP error:' + str(e.message))
+            print 'HTTP error'
             response = None
         return response
 
@@ -63,6 +64,49 @@ class Connection(object):
         else:
             logger.info('response is None!')
             return None
+            
+    def sendRequestNoRedirect(self, data=None, cookies=None, getCookies=False):
+        response = self.__getResponseNoRedirect(data, cookies)
+        if response:
+            if getCookies:
+                return Cookie.SimpleCookie(response.get('Set-Cookie'))
+            else:
+                return response
+        else:
+            logger.info('response is None!')
+            return None
+            
+    def __getResponseNoRedirect(self, data, cookies=None, headers=None):
+        opener = urllib2.build_opener()    
+        opener = OpenerDirector()
+        h_classes = [UnknownHandler, HTTPHandler, HTTPDefaultErrorHandler, HTTPErrorProcessor]
+        cookieprocessor = HTTPCookieProcessor()
+        for klass in h_classes:
+            opener.add_handler(klass())
+        
+        opener.addheaders = self.getHeaders().items()
+        if headers is not None:
+            opener.addheaders += headers
+        if cookies is not None:
+            opener.addheaders += [('Cookie', cookies)]
+        if data is not None:
+            data = urllib.urlencode(self.encode_dict(data))
+        logger.info('request: ' + self.__url + ' ' + str(data))
+
+        opener.add_handler(cookieprocessor)
+        try:
+            res = opener.open(self.__url, data, timeout=8)
+        except HTTPError, e:
+            #print e.headers
+            #print 'Location ', e.headers.get('Location')
+            #print 'Cookies', list(cookieprocessor.cookiejar)            
+            if list(cookieprocessor.cookiejar):
+                #print 'Cookies Yes'
+                return e.headers
+            else: 
+                #print 'No Cookies'
+                return e.headers.get('Location')
+        return response
 
     def __readContent(self, response):
         encoding = response.headers.getparam('charset')
