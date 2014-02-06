@@ -10,31 +10,36 @@ import logging
 import time
 from game_state.item_reader import GameItemReader
 from game_state.game_event import dict2obj, obj2dict
-from game_state.game_types import GameEVT, GameTIME, GameSTART, \
-    GameInfo, \
-    GameFertilizePlant, GamePlayGame, \
-    GameStartGainMaterial, GameStartTimeGainEvent
+from game_state.game_types import GameEVT, GameTIME, GameSTART, GameInfo, GameFertilizePlant, GamePlayGame, GameStartGainMaterial, GameStartTimeGainEvent
 import pprint
-from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler
-from game_actors_and_handlers.plants import HarvesterBot, SeederBot, \
-    PlantEventHandler, GameSeedReader
-from game_actors_and_handlers.roulettes import RouletteRoller, \
-    GameResultHandler
-from game_actors_and_handlers.wood_graves import WoodPicker, \
-    WoodTargetSelecter
-from game_actors_and_handlers.cook_graves import BrewPicker, CookerBot,\
-                                                 RecipeReader
-from game_actors_and_handlers.digger_graves import BagsPicker, \
-    TimeGainEventHandler
-from game_actors_and_handlers.stone_graves import StonePicker, \
-    StoneTargetSelecter
+from game_actors_and_handlers.gifts import GiftReceiverBot, AddGiftEventHandler, CakesReceiverBot
+from game_actors_and_handlers.plants import HarvesterBot, SeederBot, PlantEventHandler, GameSeedReader, UseEggItemBot, FertilBot
+from game_actors_and_handlers.roulettes import RouletteRoller, GameResultHandler, FrutRouletteRoller
+from game_actors_and_handlers.wood_graves import WoodPicker, WoodTargetSelecter
+from game_actors_and_handlers.cook_graves import BrewPicker, CookerBot, RecipeReader, CookSpeed
+from game_actors_and_handlers.digger_graves import BagsPicker, TimeGainEventHandler
+from game_actors_and_handlers.stone_graves import StonePicker, StoneTargetSelecter
+from game_actors_and_handlers.search_buff import GameBuffDigger
 from game_actors_and_handlers.workers import GainMaterialEventHandler
-from game_actors_and_handlers.pickups import Pickuper, AddPickupHandler,\
-    BoxPickuper
+from game_actors_and_handlers.pickups import Pickuper, AddPickupHandler,BoxPickuper,MonsterPit
 from game_actors_and_handlers.location import ChangeLocationBot, GameStateEventHandler
+from game_actors_and_handlers.friends import VisitingUsers
 from game_state.brains import PlayerBrains
+from game_actors_and_handlers.wand import MagicWand
+from game_actors_and_handlers.harvest_buff import GameBuffHarvest
+from game_actors_and_handlers.friend_dig import FriendDigger
+from game_actors_and_handlers.exchange_collection import ExchangeKruger, ExchangeMummy
+from game_actors_and_handlers.chop import PirateTreeCut, PirateTreeInfo
+from game_actors_and_handlers.trade import TraderWork
+from game_actors_and_handlers.extra_money import HarvestExchange
+from game_actors_and_handlers.building_buyer import BuildingBuyer
+
+
 import socket
 import urllib2
+from game_actors_and_handlers.burrowing import DigBot
+from game_actors_and_handlers.storage import SellBot
+from game_actors_and_handlers.missions import GetMissionsBot, ViewMissions
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +47,10 @@ logger = logging.getLogger(__name__)
 
 class GameLocation():
 
-    def __init__(self, item_reader, game_location):
+    def __init__(self, item_reader, game_location, game_objects):
         self.__item_reader = item_reader
         self.__game_location = game_location
+        self.__game_objects = game_objects
         self.__pickups = []
 
     def append_object(self, obj):
@@ -54,7 +60,9 @@ class GameLocation():
         return self.__game_location
 
     def get_game_objects(self):
-        return self.get_game_location().gameObjects
+        #open("game_location.txt","w").write(str(obj2dict(self.get_game_location())))
+        #return self.get_game_location().gameObjects
+        return self.__game_objects
 
     def get_location_id(self):
         return self.__game_location.id
@@ -165,8 +173,9 @@ class GameInitializer():
         session_key, server_time = self.get_time()
 
         # send START
-        start_response = self.start_game(server_time, session_key)
-        return start_response
+        start_response, friendsid = self.start_game(server_time, session_key)
+        logger.info('Остров загружен!')
+        return start_response, friendsid, server_time
 
     def get_time(self):
         '''
@@ -195,10 +204,11 @@ class GameInitializer():
         self.__factory.setSessionKey(session_key)
         client_time = self.__timer._get_client_time()
         start_time = time.time()
-        command = self.__site.create_start_command(server_time, client_time)
+        #print client_time, start_time
+        command, friendsid = self.__site.create_start_command(server_time, client_time)
         sending_time = (time.time() - start_time) * 1000
         self.__timer._add_sending_time(sending_time)
-        return self.__request_sender.send(command)
+        return self.__request_sender.send(command),friendsid
 
     def _getUserInfo(self):
         '''
@@ -237,11 +247,36 @@ class GameState():
                                             item_reader)
         total_brain_count = self.__player_brains.get_total_brains_count()
         occupied_brain_count = self.__player_brains.get_occupied_brains_count()
+        logger.info("")
         logger.info("Мозги: %d/%d" % (occupied_brain_count, total_brain_count))
+        x=0
+        z=0
+        for burySlot in self.__game_state.burySlots:
+            x+=1
+            if (hasattr(burySlot, u"user") is True): z+=1
+        logger.info("Использование слотов для закопки друзей: %d/%d" % (z,x))
+        if len(self.__game_state.buyedBrains)<>0:
+          logger.info("Купленные:")
+          x=1
+          for buyed_brain in self.__game_state.buyedBrains:
+              ms=int(buyed_brain.endTime)-((int(buyed_brain.endTime)/1000)*1000)
+              s=(int(buyed_brain.endTime)/1000)-(((int(buyed_brain.endTime)/1000)/60)*60)
+              m=((int(buyed_brain.endTime)/1000)/60)-((((int(buyed_brain.endTime)/1000)/60)/60)*60)
+              h=((int(buyed_brain.endTime)/1000)/60)/60
+              logger.info("%d. Время окончания: %d:%d:%d.%d"%(x,h,m,s,ms))
+              x+=1
+        logger.info("")
+        logger.info("Уровень игрока: "+str(self.__game_state.level))
+        s=''
+        for i in range(len(str(self.__game_state.gameMoney)),0,-3):
+          if i>=3: s=str(self.__game_state.gameMoney)[i-3:i]+'.'+s
+          else: s=str(self.__game_state.gameMoney)[:i]+'.'+s
+        logger.info("Деньги игрока: "+s[:-1])
+        logger.info("")
 
     def set_game_loc(self, game_state_event):
         self.__game_loc = GameLocation(self.__item_reader,
-                                       game_state_event.location)
+                                       game_state_event.location,game_state_event.gameObjects)
         for attr, val in game_state_event.__dict__.iteritems():
             self.__game_state.__setattr__(attr, val)
         #self.get_game_loc().log_game_objects()
@@ -258,10 +293,46 @@ class GameState():
     def get_brains(self):
         return self.__player_brains
 
+    def has_in_storage(self, item_id, count):
+        for itemid in self.__game_state.storageItems:
+            if hasattr(itemid, "item"): 
+                if itemid.item == item_id:
+                    return itemid.count >= count
+        return False
+
+    def count_in_storage(self, item_id):
+        for itemid in self.__game_state.storageItems:
+            if hasattr(itemid, "item"): 
+                if itemid.item == item_id:
+                    return itemid.count
+        return 0
+
+    def remove_from_storage(self, item_id, count):
+        for itemid in self.__game_state.storageItems:
+            if hasattr(itemid, "item"): 
+                if itemid.item == item_id:
+                    itemid.count -= count
+                    return True
+        return False
+
+    def add_from_storage(self, item_id, count):
+        for itemid in self.__game_state.storageItems:
+            if hasattr(itemid, "item"): 
+                if itemid.item == item_id:
+                    itemid.count += count
+                    return
+        self.set_from_storage(item_id, count)
+
+    def set_from_storage(self, item_id, count):
+        itemid=dict2obj({item_id:count})
+        self.__game_state.storageItems.append(itemid)
+
 
 class Game():
 
-    CLIENT_VERSION = long(1362084734)
+    #CLIENT_VERSION = long(1362084734)
+    #CLIENT_VERSION = long(1378103895)
+    CLIENT_VERSION = long(1382714383)
 
     def __init__(self, site, settings,
                  user_prompt, game_item_reader=None, gui_input=None):
@@ -270,15 +341,8 @@ class Game():
         self.__timer = GameTimer()
         self.__game_initializer = GameInitializer(self.__timer, site)
         self.__settings = settings
-        self.__ignore_errors = settings.get_ignore_errors()
 
-        # load items dictionary
-        if game_item_reader is None:
-            self.__itemReader = GameItemReader()
-            self.__itemReader.download('items.txt')
-            self.__itemReader.read('items.txt')
-        else:
-            self.__itemReader = game_item_reader
+        self.__itemReader = game_item_reader
         self.__user_prompt = user_prompt
         self.__selected_seed = None
         self.__selected_recipe = None
@@ -286,6 +350,49 @@ class Game():
         self.__receive_gifts_with_messages = False
         self.__receive_non_free_gifts = False
         self.__gui_input = gui_input
+        
+        # load settings
+        self.__ignore_errors = settings.get_ignore_errors()
+        self.__selected_recipe = settings.getUserCook()
+        self.__selected_seed = settings.getUserSeed()
+        self.__selected_sell = settings.getUserSell()
+        self.__selected_send = settings.getUserSend()
+        self.__setting_view = settings.GetUserView()
+        self.__selected_loc_setting = settings.getUserLoc()
+        
+        print ''
+        if self.__selected_seed<>None: 
+            if  (self.__selected_seed=='None'): print u'Выбранные семена: ничего не сажать'
+            else:
+                if type(self.__selected_seed)==type(''): print u'Выбранные семена: везде "%s"'%str(self.__selected_seed)
+                else: 
+                    print u'Выбранные семена (остров - семена):'
+                    for loc in self.__selected_seed.keys(): 
+                        if len(loc)>6: print u'\t%s\t-\t"%s"'%(str(loc),str(self.__selected_seed[loc]))
+                        else: print u'\t%s\t\t-\t"%s"'%(str(loc),str(self.__selected_seed[loc]))
+        print ''
+        if self.__selected_recipe<>None: 
+            if  (self.__selected_recipe=='None'): print u'Выбранные рецепты: ничего не варить'
+            else:
+                if type(self.__selected_recipe)==type(''): print u'Выбранные рецепты: везде "%s"'%str(self.__selected_recipe)
+                elif type(self.__selected_recipe)==type([]): print u'Выбранные рецепты: везде "%s"'%str(', '.join(self.__selected_recipe))
+                else: 
+                    print u'Выбранные семена (остров - рецепт):'
+                    for loc in self.__selected_recipe.keys(): 
+                        if len(loc)>6: print u'\t%s\t-\t"%s"'%(str(loc),str(self.__selected_recipe[loc]))
+                        else: print u'\t%s\t\t-\t"%s"'%(str(loc),str(self.__selected_recipe[loc]))
+        if  (self.__selected_sell==None): print u'Предметы на продажу: ничего не продавать'
+        else:
+            print u'Предметы на продажу (предмет - сколько оставить):'
+            for item in self.__selected_sell.keys(): 
+                print u'\t"%s"\t\t-\t%s'%(str(item),str(self.__selected_sell[item]))
+        print ''
+        print u'Настройки показа:'
+        if  (self.__setting_view['pickup']): print u'\tПоказывать подбираемые предметы'
+        else:  print u'\tНе показывать подбираемые предметы'
+        if  (self.__setting_view['location_send']): print u'\tПоказывать перешедшую локацию'
+        else:  print u'\tНе показывать перешедшую локацию'
+        print ''
 
     def select_item(self, reader_class, prompt_string):
         item_reader = reader_class(self.__itemReader)
@@ -300,24 +407,37 @@ class Game():
                                                     u'Семена для грядок:')
 
     def select_recipe(self):
-        recipe_id = self.__settings.get_user_setting('selected_recipe_id')
-        if recipe_id:
-            self.__selected_recipe = self.__itemReader.get(recipe_id)
         if self.__selected_recipe is None:
             self.__selected_recipe = self.select_item(RecipeReader,
-                                                      u'Рецепты для поваров:')
-            self.__settings.save_user_setting('selected_recipe_id', self.__selected_recipe.id)
+                                                      u'Рецепт для поваров:')
 
     def select_location(self):
+        logger.info('Доступные острова:')
+        logger.info('(+ платный, - бесплатный, ? - пещера)')
+        locations_nfree = [u'isle_01', 'isle_small', 'isle_star', 'isle_large', 'isle_moon', 'isle_giant', 'isle_xxl', 'isle_desert']
+        locations_nwalk = [u'un_0'+str(x+1) for x in range(9)]
+        
         locations = {}
         for location in self.get_game_state().locationInfos:
             name = self.__itemReader.get(location.locationId).name
-            locations[name] = location
+            if (location.locationId not in locations_nfree) and (location.locationId not in locations_nwalk):
+                locations[name] = location
+                logger.info('\t-\t'+location.locationId+'\t'+name)
+            else:
+                if (location.locationId not in locations_nfree):
+                    logger.info('\t?\t'+location.locationId+'\t'+name)
+                else:
+                    logger.info('\t+\t'+location.locationId+'\t'+name)
         if locations:
-            location_name = self.__user_prompt.prompt_user(u'Выберите остров:',
-                                                       locations.keys())
+            logger.info('Находимся на острове:')
+            logger.info('   *       '+self.__itemReader.get(self.get_game_loc().get_location_id()).name)
+            logger.info("")
+            #location_name = self.__user_prompt.prompt_user(u'Выберите остров:',locations.keys())
+            location_name = locations.keys()[0]
             if location_name in locations:
                 self.__selected_location  = locations[location_name].locationId
+            else:
+                self.__selected_location  = self.get_game_loc().get_location_id()
 
     def get_user_setting(self, setting_id):
         return self.__settings.get
@@ -334,15 +454,30 @@ class Game():
 
         while(self.running()):
             try:
-                start_response = self.__game_initializer.start()
+                # load items dictionary
+                if self.__itemReader is None:
+                    logger.info('Загружаем словарь объектов...')
+                    item_reader = GameItemReader()
+                    item_reader.download('items.txt')
+                    item_reader.read('items.txt')
+                    self.__itemReader = item_reader
+                    logger.info('Словарь объектов загружен')
+                start_response,self.__friendsid,self.__server_time = self.__game_initializer.start()
+                # Save Game_state
+                open("game_state.txt","w").write(str(obj2dict(start_response)))
+                
                 self.__game_events_sender = self.__game_initializer.create_events_sender()
 
                 self.save_game_state(start_response)
+                
+#                GetMissionsBot(self.__itemReader, self.__game_state_, self.__game_events_sender, self._get_timer(),{}).perform_action()
+                
+                self.select_location()
 
-#                self.select_location()
                 self.select_plant_seed()
+                
                 self.select_recipe()
-
+                
                 self.create_all_actors()
 
                 # TODO send getMissions
@@ -352,12 +487,12 @@ class Game():
             except urllib2.HTTPError, e:
                 raise e
             except (socket.timeout, urllib2.HTTPError, urllib2.URLError):
-                seconds = 3
+                seconds = 5
                 logger.error('Timeout occurred, retrying in %s seconds...'
                              % seconds)
                 time.sleep(seconds)
             except (socket.error, ssl.SSLError) as e:
-                seconds = 10
+                seconds = 15
                 logger.error('Socket error occurred, retrying in %s seconds...'
                              % seconds)
                 time.sleep(seconds)
@@ -381,14 +516,28 @@ class Game():
         send EVT request
         handle EVT response
         '''
-        interval = 30
+        interval = 8
+        refresh_min = 5
         seconds = interval
+        ref_min = []
         while(self.running()):
             if seconds >= interval:
                 self.perform_all_actions()
+                #logger.info('Ждем %d секунд'%interval)
                 seconds = 0
             time.sleep(0.1)
             seconds += 0.1
+            
+            cur_time = self.__timer._get_current_client_time()
+            min = int(int(cur_time/1000)/60)
+            if min not in ref_min:
+                if (refresh_min-min)==1: logger.info(u'Перезагрузка через %s минуту'%str(refresh_min-min))
+                elif ((refresh_min-min)>=2) and ((refresh_min-min)<=4): logger.info(u'Перезагрузка через %s минуты'%str(refresh_min-min))
+                else: logger.info(u'Перезагрузка через %s минут'%str(refresh_min-min))
+                ref_min += [min]
+            if min>=refresh_min: 
+                ref_min = []
+                break
 
     def create_all_actors(self):
         receive_options = {'with_messages': self.__receive_gifts_with_messages,
@@ -397,26 +546,50 @@ class Game():
                    'SeederBot': self.__selected_seed,
                    'CookerBot': self.__selected_recipe,
                    'ChangeLocationBot': self.__selected_location,
+                   'VisitingUsers':self.__friendsid,
+                   'DigBot':self.__friendsid,
+                   'SellBot':{'sell_item':self.__selected_sell,'send_user':self.__selected_send},
+                   'ChangeLocationBot':self.__selected_loc_setting,
                   }
         events_sender = self.__game_events_sender
         timer = self._get_timer()
         item_reader = self.__itemReader
         game_state = self.__game_state_
-        actor_classes = [
-            #ChangeLocationBot,
-            Pickuper,
-            BoxPickuper,
-            GiftReceiverBot,
-            HarvesterBot,
-            SeederBot,
-            CookerBot,
-            RouletteRoller,
-            WoodPicker,
-            BrewPicker,
-            BagsPicker,
-            WoodTargetSelecter,
-            StonePicker,
-            StoneTargetSelecter,
+        actor_classes = [      
+            #FriendDigger,        #Компаем у друзей
+            DigBot,             # Работа с мозгами
+            #GetMissionsBot,     # Запрос выполнения миссий
+            MonsterPit,          #Закапывание чуда
+            #VisitingUsers,      # Посещение друзей
+            #GameBuffHarvest, #Приём супер урожая
+            #GameBuffDigger,     # Приём супер-поиск
+            WoodPicker,         # Сбор дерева
+            StonePicker,        # Сбор камня
+            BrewPicker,         # Сбор сваренного
+            BagsPicker,         # Сбор сумок
+            WoodTargetSelecter, # Отправка работать дровосекам
+            StoneTargetSelecter,# Отправка работать камнетёсов
+            CookerBot,          # Работа с поварами (подъем из могил, установка рецептов)
+            #CookSpeed,          # Посолить рецепты
+            #FertilBot,          # Удобрение деревьев
+            HarvesterBot,       # Сбор чего либо + вскапывание грядок
+            CakesReceiverBot,   # Сбор пряников
+            SeederBot,          # Посейка
+            GiftReceiverBot,    # Принятие подарков
+            BoxPickuper,        # Вскрытие чего либо
+            RouletteRoller,     # Кручение рулеток            
+            #FrutRouletteRoller, # Кручение фруктовых рулеток
+            UseEggItemBot,      # Бить яйца ;)
+            #MagicWand,          # Добыча ресурсов палочками
+            #ExchangeKruger,      # Создаем коллекцию фреди в изумрудной мельнице
+            #ExchangeMummy,       # Создаем коллекцию мумии в изумрдуном маяке
+            Pickuper,           # Сбор дропа
+            #SellBot,            # Продажа чего либо
+            #TraderWork,         # Торговцы
+            #BuildingBuyer,     # Покупаем, продаем ракету
+            #HarvestExchange,    #создаем деньги в БЦ
+            #PirateTreeCut,     #рубка на острове сокровищ
+            ChangeLocationBot,  # Переход по локациям
         ]
         self.__actors = []
         for actor_class in actor_classes:
@@ -428,11 +601,19 @@ class Game():
         '''
         Assumes that create_all_actors is called before
         '''
+        #all_time=[]
         for actor in self.__actors:
+            #time_one=time.time()
             actor.perform_action()
+            #time_two=time.time()
+            #logger.info(u'Класс %s' % (str(actor).split()[0].split('.')[-1]))
+            #logger.info(u'Выполнялся %f' % (time_two-time_one))
+            #all_time+=[[str(actor).split()[0].split('.')[-1],(time_two-time_one)]]
             self.handle_all_events()
+        #open('time.txt','a').write(str(all_time))
         self.__game_events_sender.send_game_events()
         self.handle_all_events()
+        #raw_input()
 
     def handle_all_events(self):
         self.__game_events_sender.print_game_events()
@@ -444,12 +625,11 @@ class Game():
             AddGiftEventHandler(self.get_game_state()).handle(event_to_handle)
         elif event_to_handle.action == 'add':
             if event_to_handle.type == 'pickup':
-                AddPickupHandler(self.get_game_loc()).handle(event_to_handle)
+                AddPickupHandler(self.__itemReader, self.get_game_loc(),self.__game_state_,self.__setting_view).handle(event_to_handle)
         elif event_to_handle.type == GameFertilizePlant.type:
             PlantEventHandler(self.get_game_loc()).handle(event_to_handle)
         elif event_to_handle.type == GamePlayGame.type:
-            GameResultHandler(self.__itemReader,
-                              self.get_game_loc()).handle(event_to_handle)
+            GameResultHandler(self.__itemReader,self.get_game_loc(),self.__game_state_).handle(event_to_handle)
         elif event_to_handle.type == GameStartGainMaterial.type:
             GainMaterialEventHandler(self.__itemReader, self.get_game_loc(),
                                      self.__timer).handle(event_to_handle)
@@ -457,7 +637,9 @@ class Game():
             TimeGainEventHandler(self.__itemReader, self.get_game_loc(),
                                  self.__timer).handle(event_to_handle)
         elif event_to_handle.type == 'gameState':
-            GameStateEventHandler(self.__game_state_).handle(event_to_handle)
+            GameStateEventHandler(self.__game_state_, self.__server_time,self.__setting_view).handle(event_to_handle)
+        elif event_to_handle.type == 'mission':
+            ViewMissions(self.__itemReader, self.__setting_view).handle(event_to_handle)
         else:
             self.logUnknownEvent(event_to_handle)
         self.__game_events_sender.remove_game_event(event_to_handle)
@@ -496,3 +678,4 @@ class RequestSender(object):
 
     def set_auth_key(self, auth_key):
         self.__factory.set_auth_key(auth_key)
+
