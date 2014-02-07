@@ -64,6 +64,7 @@ def obj2dict(obj):
           isinstance(obj, bool) or
           isinstance(obj, int) or
           isinstance(obj, long) or
+          isinstance(obj, float) or
           isinstance(obj, unicode) or
           isinstance(obj, NoneType)):
         d = obj
