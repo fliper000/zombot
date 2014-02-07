@@ -19,8 +19,8 @@ class FrutRouletteRoller(BaseActor):
         # '@S_52' Вишня
         # '@S_51' Красные яблоки		
         # '@S_55' Глазное яблоко
-        #ftut_ids = ['@R_56','@R_57']
-        ftut_ids = ['@R_56']
+        ftut_ids = {'@R_56','@R_57'}
+        #ftut_ids = ['@R_56']
         for fr in ftut_ids:
             frut_count=self._get_game_state().count_in_storage(fr)
             if frut_count==0: break
