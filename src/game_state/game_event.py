@@ -102,4 +102,4 @@ class Gift(object):
 class ApplyGiftEvent(GiftEvent):
 
     def __init__(self, gift):
-        super(ApplyGiftEvent, self).__init__('applyGift', gift)
+        super(ApplyGiftEvent, self).__init__("applyGift", gift)
